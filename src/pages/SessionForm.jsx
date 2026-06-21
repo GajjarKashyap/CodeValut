@@ -182,9 +182,6 @@ export default function SessionForm() {
     </div>
   );
 
-  const InputLabel = ({ children }) => (
-    <label className="block text-xs font-medium text-dark-muted mb-1.5 font-mono uppercase tracking-wider">{children}</label>
-  );
 
   const inputClass = "w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2.5 text-white transition-colors font-sans text-sm placeholder-dark-border/80";
 
@@ -422,3 +419,7 @@ export default function SessionForm() {
     </div>
   );
 }
+
+const InputLabel = ({ children }) => (
+  <label className="block text-xs font-medium text-dark-muted mb-1.5 font-mono uppercase tracking-wider">{children}</label>
+);

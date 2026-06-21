@@ -104,16 +104,6 @@ export default function Share() {
     );
   }
 
-  const CopyButton = ({ text, label, section }) => (
-    <button
-      type="button"
-      onClick={() => copyToClipboard(text, section)}
-      className="text-xs flex items-center gap-1.5 bg-dark-bg border border-dark-border hover:border-primary/50 text-dark-muted hover:text-white px-2.5 py-1.5 rounded-lg transition-colors font-sans cursor-pointer"
-    >
-      {copiedSection === section ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
-      {copiedSection === section ? 'Copied!' : label}
-    </button>
-  );
 
   return (
     <div className="min-h-screen bg-dark-bg text-white pb-12">
@@ -217,7 +207,7 @@ export default function Share() {
                   {useSimpleEditor ? 'Rich View' : 'Simple View'}
                 </button>
               </div>
-              <CopyButton text={session.code} label="Copy Code" section="code" />
+              <CopyButton label="Copy Code" onClick={() => copyToClipboard(session.code, 'code')} isCopied={copiedSection === 'code'} />
             </div>
 
             {useSimpleEditor ? (
@@ -251,7 +241,7 @@ export default function Share() {
                     {useSimpleEditor ? 'Rich View' : 'Simple View'}
                   </button>
                 </div>
-                <CopyButton text={session.output} label="Copy Output" section="output" />
+                <CopyButton label="Copy Output" onClick={() => copyToClipboard(session.output, 'output')} isCopied={copiedSection === 'output'} />
               </div>
 
               {useSimpleEditor ? (
@@ -277,7 +267,7 @@ export default function Share() {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <h2 className="text-xs font-semibold text-dark-muted uppercase tracking-widest font-mono">Notes</h2>
-                <CopyButton text={session.notes} label="Copy Notes" section="notes" />
+                <CopyButton label="Copy Notes" onClick={() => copyToClipboard(session.notes, 'notes')} isCopied={copiedSection === 'notes'} />
               </div>
               <div className="bg-dark-bg border border-dark-border rounded-xl p-4 md:p-5 text-dark-text whitespace-pre-wrap leading-relaxed font-sans">
                 {session.notes}
@@ -289,3 +279,14 @@ export default function Share() {
     </div>
   );
 }
+
+const CopyButton = ({ label, onClick, isCopied }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="text-xs flex items-center gap-1.5 bg-dark-bg border border-dark-border hover:border-primary/50 text-dark-muted hover:text-white px-2.5 py-1.5 rounded-lg transition-colors font-sans cursor-pointer"
+  >
+    {isCopied ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
+    {isCopied ? 'Copied!' : label}
+  </button>
+);

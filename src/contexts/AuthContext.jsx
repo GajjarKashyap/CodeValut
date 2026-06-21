@@ -8,21 +8,37 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    let subscription = null;
+    
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Supabase getSession error:", err);
+        setLoading(false);
+      });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    try {
+      const res = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null);
+      });
+      subscription = res.data?.subscription;
+    } catch (err) {
+      console.error("Supabase onAuthStateChange error:", err);
+    }
 
-    return () => subscription.unsubscribe();
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
   }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

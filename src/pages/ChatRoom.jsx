@@ -424,7 +424,7 @@ export default function ChatRoom() {
                 <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                 
                 {msg.session_id && msg.sessions && (
-                  <div className="mt-1 bg-dark-bg/60 border border-dark-border rounded-xl overflow-hidden text-left flex flex-col w-full max-w-[350px]">
+                  <div className="mt-1 bg-dark-bg/60 border border-dark-border rounded-xl overflow-hidden text-left flex flex-col w-full">
                     <div className="p-2.5 border-b border-dark-border/50 flex items-center justify-between bg-dark-surface/80">
                       <div className="flex items-center gap-2 min-w-0">
                         {msg.sessions.subject === 'Java' ? <Coffee size={14} className="text-orange-400 shrink-0" /> : <Database size={14} className="text-green-400 shrink-0" />}

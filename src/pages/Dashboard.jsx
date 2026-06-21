@@ -1,6 +1,6 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Coffee, Database, Star, FileText, X, TrendingUp, Users, ShieldCheck } from 'lucide-react';
+import { Coffee, Database, Star, FileText, X, TrendingUp, Users, ShieldCheck, Activity } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState({ total: 0, java: 0, mongo: 0, favorites: 0 });
   const [allSessions, setAllSessions] = useState([]);
   const [studentStatsList, setStudentStatsList] = useState([]);
+  const [adminUsersActivity, setAdminUsersActivity] = useState([]);
   const [selectedStudentFilter, setSelectedStudentFilter] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -42,6 +43,17 @@ export default function Dashboard() {
         setStats({ total: sessions.length, java: javaCount, mongo: mongoCount, favorites: favCount });
 
         if (isAdmin) {
+          // Fetch real-time user activity
+          const { data: userActivity, error: activityError } = await supabase
+            .from('user_activity')
+            .select('*')
+            .order('last_seen_at', { ascending: false });
+            
+          if (!activityError && userActivity) {
+            setAdminUsersActivity(userActivity);
+          }
+
+          // Legacy stats based on sessions
           const statsMap = {};
           sessions.forEach(s => {
             const email = s.user_email || 'Unknown Student';
@@ -127,6 +139,67 @@ export default function Dashboard() {
         <StatCard title="Favorites" count={stats.favorites} icon={<Star size={22} className="text-yellow-400" />} color="bg-yellow-500/10" />
       </div>
 
+      {/* Admin Active Users Dashboard */}
+      {isAdmin && (
+        <div className="bg-dark-surface rounded-xl border border-dark-border overflow-hidden mt-6">
+          <div className="p-5 border-b border-dark-border flex items-center justify-between bg-[#0a1410]">
+            <div className="flex items-center gap-3">
+              <div className="bg-green-500/20 p-2 rounded-lg">
+                <Activity size={18} className="text-green-400" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white font-sans flex items-center gap-2">
+                  Active CodeVault Users
+                </h3>
+                <p className="text-xs text-dark-muted font-sans mt-0.5">Real-time status of user logins and active sessions</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-4 overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="text-dark-muted text-[11px] uppercase tracking-widest font-mono border-b border-dark-border/40">
+                  <th className="py-2 px-4 font-medium">Status</th>
+                  <th className="py-2 px-4 font-medium">User Email</th>
+                  <th className="py-2 px-4 font-medium">Last Login</th>
+                  <th className="py-2 px-4 font-medium">Last Seen</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-dark-border/20 text-sm font-sans">
+                {adminUsersActivity.map((activity) => {
+                  const lastSeen = new Date(activity.last_seen_at);
+                  const isOnline = (new Date() - lastSeen) < 5 * 60 * 1000; // 5 mins
+                  
+                  return (
+                    <tr key={activity.user_id} className="hover:bg-dark-bg/40 transition-colors">
+                      <td className="py-3 px-4">
+                        <span className={`flex items-center gap-1.5 text-xs font-mono font-bold px-2 py-1 rounded-md w-max ${isOnline ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-dark-bg text-dark-muted border border-dark-border'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-400 animate-pulse' : 'bg-dark-muted'}`}></span>
+                          {isOnline ? 'ONLINE' : 'OFFLINE'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-white font-medium text-sm">{activity.email}</td>
+                      <td className="py-3 px-4 text-dark-muted font-mono text-xs">
+                        {activity.last_login_at ? formatDistanceToNow(new Date(activity.last_login_at), { addSuffix: true }) : '-'}
+                      </td>
+                      <td className="py-3 px-4 text-dark-muted font-mono text-xs">
+                        {formatDistanceToNow(lastSeen, { addSuffix: true })}
+                      </td>
+                    </tr>
+                  );
+                })}
+                {adminUsersActivity.length === 0 && (
+                  <tr>
+                    <td colSpan="4" className="py-8 text-center text-dark-muted italic">No user activity recorded yet.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Admin Student Directory */}
       {isAdmin && (
         <div className="bg-dark-surface rounded-xl border border-dark-border overflow-hidden">
@@ -137,7 +210,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <h3 className="text-base font-bold text-white font-sans flex items-center gap-2">
-                  Student Activity Directory
+                  Student Session Directory
                   {studentStatsList.length > 0 && (
                     <span className="bg-primary/20 text-primary border border-primary/30 text-[10px] px-2 py-0.5 rounded-full font-mono font-bold">
                       {studentStatsList.length} student{studentStatsList.length !== 1 ? 's' : ''}
@@ -171,7 +244,7 @@ export default function Dashboard() {
                     <th className="py-3 px-4 text-center font-medium">Java</th>
                     <th className="py-3 px-4 text-center font-medium">MongoDB</th>
                     <th className="py-3 px-4 text-center font-medium">Total</th>
-                    <th className="py-3 px-5 text-right font-medium">Last Active</th>
+                    <th className="py-3 px-5 text-right font-medium">Last Saved Session</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-dark-border/40 text-sm font-sans">
@@ -180,9 +253,9 @@ export default function Dashboard() {
                       key={student.email}
                       onClick={() => setSelectedStudentFilter(selectedStudentFilter === student.email ? null : student.email)}
                       className={`cursor-pointer hover:bg-primary/5 transition-all duration-150 ${
-                        selectedStudentFilter === student.email
-                          ? 'bg-primary/8 border-l-2 border-l-primary'
-                          : ''
+                         selectedStudentFilter === student.email
+                           ? 'bg-primary/8 border-l-2 border-l-primary'
+                           : ''
                       }`}
                     >
                       <td className="py-3 px-5 text-white font-medium font-mono text-xs">{student.email}</td>

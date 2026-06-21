@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Send, Paperclip, MoreVertical, ShieldAlert, X, Coffee, Database, Search, Code, Terminal } from 'lucide-react';
+import { ArrowLeft, Send, Paperclip, MoreVertical, ShieldAlert, X, Coffee, Database, Search, Code, Terminal, Users, UserPlus, Check } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function ChatRoom() {
@@ -16,10 +16,16 @@ export default function ChatRoom() {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   
-  // Modal state
+  // Modal state for Session
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
   const [mySessions, setMySessions] = useState([]);
   const [sessionSearch, setSessionSearch] = useState('');
+
+  // Modal state for Manage Members
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const [globalUsers, setGlobalUsers] = useState([]);
+  const [userSearch, setUserSearch] = useState('');
+  const [currentMembers, setCurrentMembers] = useState([]);
   
   const messagesEndRef = useRef(null);
 
@@ -27,7 +33,6 @@ export default function ChatRoom() {
     fetchGroupDetails();
     fetchMessages();
     
-    // Subscribe to new messages
     const channel = supabase
       .channel(`chat_room_${chatId}`)
       .on('postgres_changes', { 
@@ -37,18 +42,14 @@ export default function ChatRoom() {
         filter: `group_id=eq.${chatId}`
       }, async (payload) => {
         let newMsg = payload.new;
-        
-        // If this message has an attached session, fetch its details to render the Code Card
         if (newMsg.session_id) {
           const { data } = await supabase
             .from('sessions')
             .select('title, subject, aim, code, output')
             .eq('id', newMsg.session_id)
             .single();
-            
           if (data) newMsg.sessions = data;
         }
-        
         setMessages(prev => [...prev, newMsg]);
         scrollToBottom();
       })
@@ -85,7 +86,13 @@ export default function ChatRoom() {
         .eq('user_id', user.id)
         .single();
         
-      if (memberData) setCurrentUserRole(memberData.role);
+      if (memberData) {
+        setCurrentUserRole(memberData.role);
+      } else {
+        // App Admins also have implicit admin rights
+        const isAdmin = user.email === '2072@admin.com' || user.email === 'admin@codevault.edu';
+        if (isAdmin) setCurrentUserRole('admin');
+      }
     } catch (err) {
       console.error('Error fetching group:', err);
     }
@@ -113,7 +120,7 @@ export default function ChatRoom() {
     if (!newMessage.trim()) return;
     
     const messageContent = newMessage;
-    setNewMessage(''); // optimistic clear
+    setNewMessage('');
     
     try {
       const { error } = await supabase
@@ -165,6 +172,37 @@ export default function ChatRoom() {
     }
   };
 
+  const handleOpenManageModal = async () => {
+    setIsManageModalOpen(true);
+    try {
+      const { data: users, error: userError } = await supabase.from('user_activity').select('*');
+      if (userError) throw userError;
+      
+      const { data: members, error: memberError } = await supabase.from('group_members').select('user_id, role').eq('group_id', chatId);
+      if (memberError) throw memberError;
+      
+      setGlobalUsers(users || []);
+      setCurrentMembers(members || []);
+    } catch (err) {
+      console.error('Error fetching manage data:', err);
+    }
+  };
+
+  const handleAddMember = async (userId) => {
+    try {
+      const { error } = await supabase.from('group_members').insert({
+        group_id: chatId,
+        user_id: userId,
+        role: 'member'
+      });
+      if (error) throw error;
+      
+      setCurrentMembers(prev => [...prev, { user_id: userId, role: 'member' }]);
+    } catch (err) {
+      console.error('Error adding member:', err);
+    }
+  };
+
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center bg-dark-bg">
@@ -175,10 +213,10 @@ export default function ChatRoom() {
 
   const canSendMessages = group?.admin_only ? currentUserRole === 'admin' : true;
   const filteredSessions = mySessions.filter(s => s.title?.toLowerCase().includes(sessionSearch.toLowerCase()));
+  const filteredGlobalUsers = globalUsers.filter(u => u.email?.toLowerCase().includes(userSearch.toLowerCase()));
 
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)] bg-dark-bg border border-dark-border rounded-2xl overflow-hidden shadow-2xl relative">
-      {/* Doodle Background Layer */}
       <div 
         className="absolute inset-0 z-0 opacity-40 pointer-events-none"
         style={{
@@ -188,7 +226,6 @@ export default function ChatRoom() {
         }}
       />
       
-      {/* Header */}
       <header className="bg-dark-surface border-b border-dark-border p-3 flex items-center justify-between z-10 shrink-0">
         <div className="flex items-center gap-3">
           <button 
@@ -210,14 +247,23 @@ export default function ChatRoom() {
             </div>
           </div>
         </div>
-        <button className="p-2 text-dark-muted hover:text-white rounded-full hover:bg-dark-bg transition-colors shrink-0">
-          <MoreVertical size={20} />
-        </button>
+        <div className="flex items-center gap-1">
+          {currentUserRole === 'admin' && !group?.is_direct_message && (
+            <button 
+              onClick={handleOpenManageModal}
+              className="p-2 text-dark-muted hover:text-white rounded-full hover:bg-dark-bg transition-colors shrink-0"
+              title="Manage Members"
+            >
+              <Users size={18} />
+            </button>
+          )}
+          <button className="p-2 text-dark-muted hover:text-white rounded-full hover:bg-dark-bg transition-colors shrink-0">
+            <MoreVertical size={20} />
+          </button>
+        </div>
       </header>
 
-      {/* Messages Area */}
       <main className="flex-1 overflow-y-auto p-4 z-10 flex flex-col gap-3">
-        {/* End-to-end encryption notice like WhatsApp */}
         <div className="flex justify-center mb-4">
           <span className="bg-primary/10 border border-primary/20 text-primary text-[10px] font-mono px-3 py-1.5 rounded-lg text-center max-w-xs shadow-md">
             Messages and shared code sessions are secured with CodeVault encryption.
@@ -245,7 +291,6 @@ export default function ChatRoom() {
               >
                 <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                 
-                {/* Code Card Render */}
                 {msg.session_id && msg.sessions && (
                   <div className="mt-1 bg-dark-bg/60 border border-dark-border rounded-xl overflow-hidden text-left flex flex-col w-full max-w-[350px]">
                     <div className="p-2.5 border-b border-dark-border/50 flex items-center gap-2 bg-dark-surface/80">
@@ -283,7 +328,6 @@ export default function ChatRoom() {
                   </div>
                 )}
                 
-                {/* Message Time */}
                 <div className={`text-[9px] mt-0.5 text-right font-mono ${isMine ? 'text-primary/70' : 'text-dark-muted'}`}>
                   {format(new Date(msg.created_at), 'HH:mm')}
                 </div>
@@ -294,7 +338,6 @@ export default function ChatRoom() {
         <div ref={messagesEndRef} />
       </main>
 
-      {/* Input Area */}
       <footer className="bg-dark-surface border-t border-dark-border p-3 z-10 shrink-0">
         {!canSendMessages ? (
           <div className="flex items-center justify-center gap-2 bg-dark-bg border border-dark-border py-3 rounded-xl text-dark-muted text-sm font-sans">
@@ -337,9 +380,78 @@ export default function ChatRoom() {
         )}
       </footer>
 
+      {/* Manage Members Modal */}
+      {isManageModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-dark-bg border border-dark-border rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
+            <div className="p-4 border-b border-dark-border flex items-center justify-between bg-dark-surface">
+              <h3 className="text-white font-bold font-sans flex items-center gap-2">
+                <Users size={16} className="text-primary" />
+                Manage Group Members
+              </h3>
+              <button 
+                onClick={() => setIsManageModalOpen(false)}
+                className="text-dark-muted hover:text-white p-1 cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-4 border-b border-dark-border bg-dark-bg">
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-muted" />
+                <input
+                  type="text"
+                  placeholder="Search user emails to add..."
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className="w-full bg-dark-surface border border-dark-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:border-primary focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-0">
+              <ul className="divide-y divide-dark-border/50">
+                {filteredGlobalUsers.map(u => {
+                  const isMember = currentMembers.some(m => m.user_id === u.user_id);
+                  return (
+                    <li key={u.user_id} className="p-4 flex items-center justify-between hover:bg-dark-surface/50 transition-colors">
+                      <div className="min-w-0">
+                        <p className="text-white text-sm font-medium truncate">{u.email}</p>
+                        <p className="text-xs text-dark-muted font-mono mt-0.5">
+                          Last seen: {formatDistanceToNow(new Date(u.last_seen_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                      
+                      {isMember ? (
+                        <span className="flex items-center gap-1 text-xs text-dark-muted bg-dark-surface px-2.5 py-1.5 rounded-lg border border-dark-border">
+                          <Check size={14} className="text-green-400" /> Member
+                        </span>
+                      ) : (
+                        <button 
+                          onClick={() => handleAddMember(u.user_id)}
+                          className="flex items-center gap-1.5 text-xs text-dark-bg font-bold bg-primary px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-transform active:scale-95 cursor-pointer"
+                        >
+                          <UserPlus size={14} /> Add
+                        </button>
+                      )}
+                    </li>
+                  );
+                })}
+                {filteredGlobalUsers.length === 0 && (
+                  <li className="p-8 text-center text-dark-muted text-sm italic">
+                    No users found.
+                  </li>
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Session Selection Modal */}
       {isSessionModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
           <div className="bg-dark-bg border border-dark-border rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
             <div className="p-4 border-b border-dark-border flex items-center justify-between bg-dark-surface">
               <h3 className="text-white font-bold font-sans">Share a Session</h3>

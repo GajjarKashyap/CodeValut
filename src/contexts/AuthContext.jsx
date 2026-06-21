@@ -21,8 +21,22 @@ export const AuthProvider = ({ children }) => {
       });
 
     try {
-      const res = supabase.auth.onAuthStateChange((_event, session) => {
+      const res = supabase.auth.onAuthStateChange(async (event, session) => {
         setUser(session?.user ?? null);
+        
+        // Record login activity if signed in
+        if (event === 'SIGNED_IN' && session?.user) {
+          try {
+            await supabase.from('user_activity').upsert({
+              user_id: session.user.id,
+              email: session.user.email,
+              last_login_at: new Date().toISOString(),
+              last_seen_at: new Date().toISOString()
+            });
+          } catch (err) {
+            console.error('Failed to log user activity:', err);
+          }
+        }
       });
       subscription = res.data?.subscription;
     } catch (err) {

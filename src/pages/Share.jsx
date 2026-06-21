@@ -301,12 +301,17 @@ export default function Share() {
               >
                 Sign In
               </a>
-              <a
-                href="mailto:2072@admin.com?subject=CodeVault Account Request&body=Hi, I would like to request an account on CodeVault. My student details are:%0A- Name:%0A- Student ID:%0A- Class/Year:"
-                className="bg-dark-bg border border-dark-border hover:border-primary/50 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors duration-300 font-sans text-sm inline-block cursor-pointer"
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText('2072@admin.com');
+                  copyToClipboard('2072@admin.com', 'admin_email');
+                  window.location.href = "mailto:2072@admin.com?subject=CodeVault Account Request&body=Hi, I would like to request an account on CodeVault. My student details are:%0A- Name:%0A- Student ID:%0A- Class/Year:";
+                }}
+                className="bg-dark-bg border border-dark-border hover:border-primary/50 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors duration-300 font-sans text-sm inline-block cursor-pointer min-w-[190px]"
               >
-                Request Account from Dev
-              </a>
+                {copiedSection === 'admin_email' ? 'Email Copied to Clipboard!' : 'Request Account from Dev'}
+              </button>
             </div>
             <p className="text-[10px] text-dark-border font-mono uppercase tracking-widest pt-2">
               Dev: Kashyap Gajjar — In Beta Phase

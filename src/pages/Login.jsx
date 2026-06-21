@@ -10,6 +10,14 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { user } = useAuth();
+  const [copiedEmail, setCopiedEmail] = useState(false);
+
+  const handleRequestAccess = () => {
+    navigator.clipboard.writeText('2072@admin.com');
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 3000);
+    window.location.href = "mailto:2072@admin.com?subject=CodeVault Account Request&body=Hi, I would like to request an account on CodeVault. My student details are:%0A- Name:%0A- Student ID:%0A- Class/Year:";
+  };
 
   if (user) {
     return <Navigate to="/" />;
@@ -112,16 +120,29 @@ export default function Login() {
           </form>
           
           {/* Account Request Info */}
-          <div className="text-center pt-3 border-t border-dark-border/40">
+          <div className="text-center pt-3 border-t border-dark-border/40 space-y-2">
             <p className="text-xs text-dark-muted font-sans">
               New user? Accounts are managed by the administrator.
             </p>
-            <a 
-              href="mailto:2072@admin.com?subject=CodeVault Account Request&body=Hi, I would like to request an account on CodeVault. My student details are:%0A- Name:%0A- Student ID:%0A- Class/Year:"
-              className="text-xs text-primary hover:underline font-mono mt-1 inline-block"
+            <button 
+              type="button"
+              onClick={handleRequestAccess}
+              className="w-full bg-dark-bg border border-dark-border hover:border-primary/50 text-white font-mono text-xs py-2.5 px-4 rounded-xl transition-all duration-300 transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
             >
-              Request Access from Dev Kashyap Gajjar
-            </a>
+              {copiedEmail ? (
+                <span className="text-green-400 font-bold">Email Copied to Clipboard!</span>
+              ) : (
+                <>
+                  <Mail size={12} className="text-primary" />
+                  <span>Request Account from Dev Kashyap Gajjar</span>
+                </>
+              )}
+            </button>
+            {copiedEmail && (
+              <p className="text-[10px] text-dark-muted font-sans animate-fadeIn">
+                Default mail client not opening? Just paste the copied email in your email app.
+              </p>
+            )}
           </div>
         </div>
 

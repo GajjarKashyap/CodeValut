@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Coffee, Database, Star, FileText, X, TrendingUp, Users, ShieldCheck, Activity } from 'lucide-react';
+import { Coffee, Database, Star, FileText, X, TrendingUp, Users, ShieldCheck, Activity, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,8 +16,7 @@ export default function Dashboard() {
 
   const isAdmin = user?.email?.toLowerCase() === '2072@admin.com' || user?.email?.toLowerCase() === 'admin@codevault.edu';
 
-  useEffect(() => {
-    async function fetchDashboardData() {
+  const fetchDashboardData = async () => {
       try {
         if (!user) return;
 
@@ -76,8 +75,9 @@ export default function Dashboard() {
       } finally {
         setLoading(false);
       }
-    }
+    };
 
+  useEffect(() => {
     if (user) fetchDashboardData();
   }, [user]);
 
@@ -154,6 +154,12 @@ export default function Dashboard() {
                 <p className="text-xs text-dark-muted font-sans mt-0.5">Real-time status of user logins and active sessions</p>
               </div>
             </div>
+            <button
+              onClick={() => { setLoading(true); fetchDashboardData(); }}
+              className="flex items-center gap-2 bg-dark-bg hover:bg-dark-border border border-dark-border text-dark-muted hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+            >
+              <RefreshCw size={14} /> Refresh List
+            </button>
           </div>
           
           <div className="p-4 overflow-x-auto">

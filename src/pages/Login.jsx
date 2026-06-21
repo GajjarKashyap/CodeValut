@@ -16,7 +16,7 @@ export default function Login() {
     navigator.clipboard.writeText('kashayapgajjar71@gmail.com');
     setCopiedEmail(true);
     setTimeout(() => setCopiedEmail(false), 3000);
-    window.location.href = "mailto:kashayapgajjar71@gmail.com?subject=CodeVault%20Account%20Request&body=Hi%20Kashyap,%0D%0A%0D%0AI%20would%20like%20to%20request%20a%20new%20student%20account%20on%20CodeVault.%0D%0A%0D%0AHere%20are%20my%20details:%0D%0A-%20Full%20Name:%20[Enter%20Your%20Name]%0D%0A-%20Roll%20Number%20/%20Student%20ID:%20[Enter%20ID]%0D%0A-%20Class%20/%20Batch:%20[Enter%20Class]%0D%0A-%20Preferred%20Login%20Email:%20[Enter%20Email]%0D%0A%0D%0AThank%20you!";
+    window.open("mailto:kashayapgajjar71@gmail.com?subject=CodeVault%20Account%20Request&body=Hi%20Kashyap,%0D%0A%0D%0AI%20would%20like%20to%20request%20a%20new%20student%20account%20on%20CodeVault.%0D%0A%0D%0AHere%20are%20my%20details:%0D%0A-%20Full%20Name:%20[Enter%20Your%20Name]%0D%0A-%20Roll%20Number%20/%20Student%20ID:%20[Enter%20ID]%0D%0A-%20Class%20/%20Batch:%20[Enter%20Class]%0D%0A-%20Preferred%20Login%20Email:%20[Enter%20Email]%0D%0A%0D%0AThank%20you!", "_blank");
   };
 
   if (user) {

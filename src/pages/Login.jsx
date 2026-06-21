@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
@@ -12,6 +12,73 @@ export default function Login() {
   const { user } = useAuth();
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [copiedSection, setCopiedSection] = useState('');
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Subtle golden code/binary characters
+    const codingChars = [
+      'const', 'let', 'function', 'import', 'return', 'await', 'async',
+      '=>', 'true', 'false', 'null', 'undefined', 'class', 'extends',
+      '0', '1', '&&', '||', '===', '++', '--', '+=', '-=',
+      '{', '}', '[', ']', '(', ')', ';', '<', '>', '/', '?'
+    ];
+    
+    const fontSize = 12;
+    const columns = Math.ceil(canvas.width / 40); // space columns
+    
+    const drops = Array.from({ length: columns }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * -canvas.height,
+      speed: Math.random() * 1.5 + 0.5,
+      text: codingChars[Math.floor(Math.random() * codingChars.length)],
+      opacity: Math.random() * 0.2 + 0.05
+    }));
+
+    const draw = () => {
+      ctx.fillStyle = 'rgba(18, 18, 18, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.font = '11px "JetBrains Mono", monospace';
+
+      drops.forEach((drop) => {
+        ctx.fillStyle = `rgba(200, 171, 126, ${drop.opacity})`;
+        ctx.fillText(drop.text, drop.x, drop.y);
+
+        drop.y += drop.speed;
+
+        if (drop.y > canvas.height) {
+          drop.y = Math.random() * -100;
+          drop.x = Math.random() * canvas.width;
+          drop.text = codingChars[Math.floor(Math.random() * codingChars.length)];
+          drop.opacity = Math.random() * 0.2 + 0.05;
+          drop.speed = Math.random() * 1.5 + 0.5;
+        }
+      });
+    };
+
+    const animate = () => {
+      draw();
+      animationFrameId = requestAnimationFrame(animate);
+    };
+    animate();
+
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
 
   const handleRequestAccess = () => {
     setShowRequestModal(true);
@@ -38,10 +105,16 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-bg flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-dark-bg flex items-center justify-center p-4 relative overflow-hidden bg-grid-pattern">
+      {/* Dynamic Code Rain Canvas */}
+      <canvas 
+        ref={canvasRef} 
+        className="absolute inset-0 pointer-events-none w-full h-full"
+      />
+
       {/* Visual Accent Background Gradients */}
-      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-primary/10 blur-[130px] pointer-events-none animate-pulse-gold" style={{ animationDuration: '8s' }} />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-primary/10 blur-[130px] pointer-events-none animate-pulse-gold" style={{ animationDuration: '10s' }} />
 
       <div className="max-w-md w-full z-10">
         <div className="text-center mb-8">

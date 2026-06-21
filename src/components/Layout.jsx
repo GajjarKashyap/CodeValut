@@ -1,4 +1,5 @@
 ﻿import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -7,6 +8,19 @@ import { Home, Coffee, Database, Search, Star, LogOut, PlusSquare, ShieldCheck, 
 export default function Layout() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (user) {
+      supabase.from('user_activity').upsert({
+        user_id: user.id,
+        email: user.email,
+        last_seen_at: new Date().toISOString()
+      }, { onConflict: 'user_id' }).then(({ error }) => {
+        if (error) console.error('Error updating last_seen_at:', error);
+      });
+    }
+  }, [location.pathname, user]);
   const isAdmin = user?.email?.toLowerCase() === '2072@admin.com' || user?.email?.toLowerCase() === 'admin@codevault.edu';
 
   const handleLogout = async () => {

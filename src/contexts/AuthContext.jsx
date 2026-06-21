@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
         setUser(session?.user ?? null);
         
         // Record login activity if signed in
-        if (event === 'SIGNED_IN' && session?.user) {
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
           try {
             await supabase.from('user_activity').upsert({
               user_id: session.user.id,

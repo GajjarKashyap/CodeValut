@@ -158,7 +158,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 Run the SQL from the **Database Schema** section above in your Supabase SQL editor.
 
 ### 4. Create Admin Account
-Register `2072@admin.com` in Supabase Auth → Users (or via the login page), then set the password to your preference.
+Create an admin user in Supabase Auth with the designated admin email and set a secure password.
 
 ### 5. Run Locally
 ```bash
@@ -196,17 +196,6 @@ src/
 
 ---
 
-## 🔐 Admin Access
-
-| Credential | Value |
-|-----------|-------|
-| Email | `2072@admin.com` |
-| Capabilities | View all sessions, Student Activity Directory, email badges |
-
-> Admin access is controlled entirely by email match on the frontend + Supabase RLS policies. The admin can view all students' sessions but cannot delete or modify students' data (by design).
-
----
-
 ## 🗺️ Roadmap
 
 - [ ] PDF export of sessions
@@ -240,3 +229,5 @@ src/
 *Built with passion for students who deserve better than paper lab notebooks.*
 
 </div>
+
+

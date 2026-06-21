@@ -252,10 +252,10 @@ export default function SessionForm() {
                       <div className="flex items-center bg-dark-bg border border-dark-border rounded-lg p-2 gap-2">
                         <input
                           type="text" readOnly
-                          value={window.location.origin + '/#/share/' + formData.share_id}
+                          value={window.location.origin + import.meta.env.BASE_URL + '#/share/' + formData.share_id}
                           className="bg-transparent text-xs text-dark-text outline-none w-full font-mono"
                         />
-                        <button type="button" onClick={() => copyShareLink(window.location.origin + '/#/share/' + formData.share_id)} className="p-1 text-primary hover:bg-primary/10 rounded transition-colors cursor-pointer">
+                        <button type="button" onClick={() => copyShareLink(window.location.origin + import.meta.env.BASE_URL + '#/share/' + formData.share_id)} className="p-1 text-primary hover:bg-primary/10 rounded transition-colors cursor-pointer">
                           {copiedLink ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
                         </button>
                       </div>

@@ -17,6 +17,10 @@ export default function ChatRoom() {
   const [loading, setLoading] = useState(true);
   const [replyingTo, setReplyingTo] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(null);
+  const [typingUsers, setTypingUsers] = useState([]);
+  const presenceChannelRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+  const isTypingRef = useRef(false);
   
   // Modal state for Session
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
@@ -64,6 +68,36 @@ export default function ChatRoom() {
       })
       .subscribe();
 
+    const pChannel = supabase.channel(`room_presence_${chatId}`, {
+      config: {
+        presence: {
+          key: user.id,
+        },
+      },
+    });
+
+    pChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = pChannel.presenceState();
+        const currentlyTyping = [];
+        for (const id in state) {
+          if (id !== user.id) {
+            const presences = state[id];
+            if (presences.some(p => p.typing)) {
+              currentlyTyping.push(presences[0].user_email);
+            }
+          }
+        }
+        setTypingUsers(currentlyTyping);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await pChannel.track({ user_email: user.email, typing: false });
+        }
+      });
+      
+    presenceChannelRef.current = pChannel;
+
     const reactionsChannel = supabase
       .channel(`chat_reactions_${chatId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, () => {
@@ -74,6 +108,7 @@ export default function ChatRoom() {
     return () => {
       supabase.removeChannel(channel);
       supabase.removeChannel(reactionsChannel);
+      supabase.removeChannel(pChannel);
     };
   }, [chatId]);
 
@@ -132,6 +167,22 @@ export default function ChatRoom() {
     }
   };
 
+  const handleTyping = async () => {
+    if (!isTypingRef.current && presenceChannelRef.current) {
+      isTypingRef.current = true;
+      await presenceChannelRef.current.track({ user_email: user.email, typing: true }).catch(() => {});
+    }
+    
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    
+    typingTimeoutRef.current = setTimeout(async () => {
+      isTypingRef.current = false;
+      if (presenceChannelRef.current) {
+        await presenceChannelRef.current.track({ user_email: user.email, typing: false }).catch(() => {});
+      }
+    }, 1500);
+  };
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
@@ -153,6 +204,12 @@ export default function ChatRoom() {
     setMessages(prev => [...prev, tempMsg]);
     const currentReplyToId = replyingTo?.id || null;
     setReplyingTo(null);
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    isTypingRef.current = false;
+    if (presenceChannelRef.current) {
+      presenceChannelRef.current.track({ user_email: user.email, typing: false }).catch(() => {});
+    }
     
     try {
       const { error } = await supabase
@@ -597,6 +654,24 @@ export default function ChatRoom() {
             <span>Only admins can send messages</span>
           </div>
         ) : (
+          <>
+          {typingUsers.length > 0 && (
+            <div className="max-w-4xl mx-auto px-4 flex items-center gap-2 mb-1 w-full translate-y-2">
+              <div className="flex gap-1 items-center bg-dark-bg/80 px-3 py-1.5 rounded-full border border-dark-border/40 shadow-sm backdrop-blur-sm z-20">
+                <div className="flex gap-1 items-end h-3 mr-1">
+                  <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-1.5 h-1.5 bg-primary/80 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+                <span className="text-[10px] text-dark-muted font-mono tracking-widest italic truncate max-w-[200px]">
+                  {typingUsers.length === 1 
+                    ? `${typingUsers[0].split('@')[0]} is typing...`
+                    : `${typingUsers[0].split('@')[0]} & ${typingUsers.length - 1} other${typingUsers.length > 2 ? 's' : ''} typing...`}
+                </span>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSendMessage} className="flex flex-col gap-2 max-w-4xl mx-auto w-full">
             {replyingTo && (
               <div className="flex items-center justify-between bg-dark-bg border-l-2 border-primary rounded-r-xl p-3 mx-12">
@@ -633,7 +708,7 @@ export default function ChatRoom() {
             <div className="flex-1 bg-dark-bg border border-dark-border rounded-2xl focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all overflow-hidden flex items-center min-h-[44px]">
               <textarea
                 value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
+                onChange={(e) => { setNewMessage(e.target.value); handleTyping(); }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -654,6 +729,7 @@ export default function ChatRoom() {
             </button>
             </div>
           </form>
+          </>
         )}
       </footer>
 

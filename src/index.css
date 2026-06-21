@@ -1,0 +1,52 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark-bg text-dark-text antialiased;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #121212; }
+::-webkit-scrollbar-thumb { background: #2d2d2d; border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: #c8ab7e33; }
+
+/* Monaco editor background */
+.monaco-editor, .monaco-editor-background, .monaco-editor .inputarea.ime-input {
+  background-color: transparent !important;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(200, 171, 126, 0); }
+  50% { box-shadow: 0 0 0 6px rgba(200, 171, 126, 0.08); }
+}
+
+.animate-fadeIn { animation: fadeIn 0.25s ease-out forwards; }
+.animate-slideInRight { animation: slideInRight 0.2s ease-out forwards; }
+.animate-pulse-gold { animation: pulse-gold 2s ease-in-out infinite; }
+
+/* Focus ring */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #c8ab7e !important;
+  box-shadow: 0 0 0 3px rgba(200, 171, 126, 0.1);
+}
+
+/* Selection color */
+::selection {
+  background: rgba(200, 171, 126, 0.25);
+}

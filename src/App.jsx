@@ -1,4 +1,4 @@
-﻿import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
@@ -8,6 +8,7 @@ import SessionList from './pages/SessionList';
 import Search from './pages/Search';
 import Share from './pages/Share';
 import Archive from './pages/Archive';
+import NotFound from './pages/NotFound';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -39,6 +40,7 @@ function App() {
             <Route path="search" element={<Search />} />
             <Route path="archive" element={<Archive />} />
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
     </AuthProvider>

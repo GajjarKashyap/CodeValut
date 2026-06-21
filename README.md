@@ -66,7 +66,7 @@
 - **Download TXT** — Export session as a plain text file
 - **Copy Buttons** — Copy code, output, or notes to clipboard with one click
 
-### 🛡️ Admin Mode (`2072@admin.com`)
+### 🛡️ Admin Mode
 - **See all students' sessions** across the entire platform
 - **Student Activity Directory** — Table with Java/MongoDB/Total counts per student
 - **Click-to-filter** — Click any student row to filter sessions by that student

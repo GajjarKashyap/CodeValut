@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Send, Paperclip, MoreVertical, ShieldAlert, X, Coffee, Database, Search, Code, Terminal, Users, UserPlus, Check } from 'lucide-react';
+import { ArrowLeft, Send, Paperclip, MoreVertical, ShieldAlert, X, Coffee, Database, Search, Code, Terminal, Users, UserPlus, Check, Trash2, Edit2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function ChatRoom() {
@@ -26,6 +26,10 @@ export default function ChatRoom() {
   const [globalUsers, setGlobalUsers] = useState([]);
   const [userSearch, setUserSearch] = useState('');
   const [currentMembers, setCurrentMembers] = useState([]);
+  
+  // Modal state for Settings
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [editGroupName, setEditGroupName] = useState('');
   
   const messagesEndRef = useRef(null);
 
@@ -188,6 +192,32 @@ export default function ChatRoom() {
     }
   };
 
+  const handleRenameGroup = async (e) => {
+    e.preventDefault();
+    if (!editGroupName.trim()) return;
+    try {
+      const { error } = await supabase.from('groups').update({ name: editGroupName.trim() }).eq('id', chatId);
+      if (error) throw error;
+      setGroup(prev => ({ ...prev, name: editGroupName.trim() }));
+      setIsSettingsModalOpen(false);
+    } catch (err) {
+      console.error('Error renaming group', err);
+    }
+  };
+
+  const handleDeleteGroup = async () => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this group? All messages and history will be lost forever.");
+    if (!confirmDelete) return;
+    try {
+      const { error } = await supabase.from('groups').delete().eq('id', chatId);
+      if (error) throw error;
+      navigate('/chat');
+    } catch (err) {
+      console.error('Error deleting group', err);
+      alert('Failed to delete group. Make sure you are an admin.');
+    }
+  };
+
   const handleAddMember = async (userId) => {
     try {
       const { error } = await supabase.from('group_members').insert({
@@ -257,9 +287,18 @@ export default function ChatRoom() {
               <Users size={18} />
             </button>
           )}
-          <button className="p-2 text-dark-muted hover:text-white rounded-full hover:bg-dark-bg transition-colors shrink-0">
-            <MoreVertical size={20} />
-          </button>
+          {currentUserRole === 'admin' && (
+            <button 
+              onClick={() => {
+                setEditGroupName(group?.name || '');
+                setIsSettingsModalOpen(true);
+              }}
+              className="p-2 text-dark-muted hover:text-white rounded-full hover:bg-dark-bg transition-colors shrink-0"
+              title="Group Settings"
+            >
+              <MoreVertical size={20} />
+            </button>
+          )}
         </div>
       </header>
 
@@ -444,6 +483,56 @@ export default function ChatRoom() {
                   </li>
                 )}
               </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Group Settings Modal */}
+      {isSettingsModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+          <div className="bg-dark-bg border border-dark-border rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col">
+            <div className="p-4 border-b border-dark-border flex items-center justify-between bg-dark-surface">
+              <h3 className="text-white font-bold font-sans flex items-center gap-2">
+                <Edit2 size={16} className="text-primary" />
+                Group Settings
+              </h3>
+              <button 
+                onClick={() => setIsSettingsModalOpen(false)}
+                className="text-dark-muted hover:text-white p-1 cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleRenameGroup} className="p-5 flex flex-col gap-4">
+              <div>
+                <label className="block text-xs font-mono text-dark-muted mb-2 uppercase tracking-wide">Rename Group</label>
+                <input
+                  type="text"
+                  value={editGroupName}
+                  onChange={(e) => setEditGroupName(e.target.value)}
+                  className="w-full bg-dark-surface border border-dark-border rounded-xl px-4 py-2.5 text-sm text-white focus:border-primary focus:outline-none transition-colors"
+                  placeholder="New group name..."
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={!editGroupName.trim() || editGroupName === group?.name}
+                className="w-full bg-primary hover:bg-primary/90 text-dark-bg font-bold py-2.5 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-sm"
+              >
+                Save Name
+              </button>
+            </form>
+            
+            <div className="p-5 border-t border-dark-border/50 bg-[#140a0a]">
+              <h4 className="text-red-400 text-xs font-bold font-mono uppercase tracking-wide mb-3">Danger Zone</h4>
+              <button
+                onClick={handleDeleteGroup}
+                className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 font-bold py-2.5 rounded-xl transition-colors cursor-pointer text-sm"
+              >
+                <Trash2 size={16} /> Delete Group
+              </button>
             </div>
           </div>
         </div>

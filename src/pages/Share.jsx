@@ -2,7 +2,7 @@
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import Editor from '@monaco-editor/react';
-import { Coffee, Database, Copy, Download, Globe, AlertCircle, Check, Tag, User, Calendar, Clock } from 'lucide-react';
+import { Coffee, Database, Copy, Download, Globe, AlertCircle, Check, Tag, User, Calendar, Clock, Mail } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function Share() {
@@ -330,7 +330,7 @@ export default function Share() {
               </button>
             </div>
             <p className="text-[10px] text-dark-border font-mono uppercase tracking-widest pt-2">
-              Dev: Kashyap Gajjar — In Beta Phase
+              Dev: Kashyap Gajjar � In Beta Phase
             </p>
           </div>
         </div>
@@ -425,7 +425,7 @@ export default function Share() {
               }}
               className="w-full bg-primary hover:bg-primary/90 text-dark-bg font-bold py-2.5 rounded-xl transition-all duration-300 transform active:scale-95 cursor-pointer font-sans text-sm mt-2"
             >
-              Done — Open Email App
+              Done � Open Email App
             </button>
           </div>
         </div>

@@ -305,9 +305,10 @@ export default function Share() {
               <button
                 type="button"
                 onClick={() => setShowRequestModal(true)}
-                className="bg-dark-bg border border-dark-border hover:border-primary/50 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors duration-300 font-sans text-sm inline-block cursor-pointer min-w-[190px]"
+                className="bg-dark-bg border border-dark-border hover:border-primary/50 text-white font-mono text-xs py-2.5 px-4 rounded-xl transition-all duration-300 transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
               >
-                Request Account from Dev
+                <Mail size={12} className="text-primary" />
+                <span>Request Account from Dev Kashyap Gajjar</span>
               </button>
             </div>
             <p className="text-[10px] text-dark-border font-mono uppercase tracking-widest pt-2">

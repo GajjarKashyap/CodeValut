@@ -15,6 +15,8 @@ export default function ChatDashboard() {
   const [groupName, setGroupName] = useState('');
   const [isGroup, setIsGroup] = useState(false);
   const [isAdminOnly, setIsAdminOnly] = useState(false);
+  const [isGlobal, setIsGlobal] = useState(false);
+  const isAdmin = user?.email?.toLowerCase() === '2072@admin.com' || user?.email?.toLowerCase() === 'admin@codevault.edu';
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -44,8 +46,24 @@ export default function ChatDashboard() {
 
       if (memberError) throw memberError;
 
+      const { data: globalData, error: globalError } = await supabase
+        .from('groups')
+        .select('*')
+        .eq('is_global', true);
+
+      if (globalError) throw globalError;
+
+      const memberGroupIds = new Set(memberData.map(gm => gm.group_id));
+      const globalGroupsToAdd = (globalData || []).filter(g => !memberGroupIds.has(g.id)).map(g => ({
+        group_id: g.id,
+        role: 'member',
+        groups: g
+      }));
+
+      const allGroups = [...memberData, ...globalGroupsToAdd];
+
       // Enhance with latest message
-      const enhancedChats = await Promise.all(memberData.map(async (gm) => {
+      const enhancedChats = await Promise.all(allGroups.map(async (gm) => {
         const { data: latestMsg } = await supabase
           .from('group_messages')
           .select('content, created_at')
@@ -136,6 +154,7 @@ export default function ChatDashboard() {
             name: groupName,
             is_direct_message: false,
             admin_only: isAdminOnly,
+            is_global: isGlobal,
             created_by: user.id
           })
           .select()
@@ -285,6 +304,20 @@ export default function ChatDashboard() {
                       <div className="text-xs text-dark-muted">Only admins can send messages in this group.</div>
                     </div>
                   </label>
+                  {isAdmin && (
+                    <label className="flex items-center gap-3 p-3 bg-dark-bg border border-dark-border rounded-xl cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isGlobal}
+                        onChange={(e) => setIsGlobal(e.target.checked)}
+                        className="w-4 h-4 rounded border-dark-border text-primary focus:ring-primary focus:ring-offset-dark-bg bg-dark-surface"
+                      />
+                      <div>
+                        <div className="text-sm font-medium text-white">Global Group</div>
+                        <div className="text-xs text-dark-muted">Visible to ALL CodeVault users automatically.</div>
+                      </div>
+                    </label>
+                  )}
                 </>
               )}
 

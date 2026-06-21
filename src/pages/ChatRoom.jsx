@@ -241,7 +241,7 @@ export default function ChatRoom() {
             <div className="min-w-0">
               <h2 className="text-white font-bold font-sans tracking-wide leading-tight truncate">{group?.name || 'Chat'}</h2>
               <p className="text-[10px] text-primary/70 font-mono tracking-widest uppercase">
-                {group?.is_direct_message ? 'Direct Message' : 'Group'}
+                {group?.is_global ? 'Global Channel' : group?.is_direct_message ? 'Direct Message' : 'Group'}
                 {group?.admin_only && ' • Admin Only'}
               </p>
             </div>

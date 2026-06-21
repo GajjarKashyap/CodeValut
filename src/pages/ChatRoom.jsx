@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Send, Paperclip, MoreVertical, ShieldAlert, X, Coffee, Database, Search, Code, Terminal, Users, UserPlus, Check, Trash2, Edit2 } from 'lucide-react';
+import { ArrowLeft, Send, Paperclip, MoreVertical, ShieldAlert, X, Coffee, Database, Search, Code, Terminal, Users, UserPlus, Check, Trash2, Edit2, Copy, Edit3 } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function ChatRoom() {
@@ -30,6 +30,11 @@ export default function ChatRoom() {
   // Modal state for Settings
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [editGroupName, setEditGroupName] = useState('');
+
+  // Modal state for Quick Snippet
+  const [isSnippetModalOpen, setIsSnippetModalOpen] = useState(false);
+  const [editingSessionId, setEditingSessionId] = useState(null);
+  const [snippetData, setSnippetData] = useState({ subject: 'Java', title: 'Quick Snippet', aim: '', code: '', output: '' });
   
   const messagesEndRef = useRef(null);
 
@@ -49,7 +54,7 @@ export default function ChatRoom() {
         if (newMsg.session_id) {
           const { data } = await supabase
             .from('sessions')
-            .select('title, subject, aim, code, output')
+            .select('id, title, subject, aim, code, output')
             .eq('id', newMsg.session_id)
             .single();
           if (data) newMsg.sessions = data;
@@ -106,7 +111,7 @@ export default function ChatRoom() {
     try {
       const { data, error } = await supabase
         .from('group_messages')
-        .select('*, sessions(title, subject, aim, code, output)')
+        .select('*, sessions(id, title, subject, aim, code, output)')
         .eq('group_id', chatId)
         .order('created_at', { ascending: true });
         
@@ -215,6 +220,69 @@ export default function ChatRoom() {
     } catch (err) {
       console.error('Error deleting group', err);
       alert('Failed to delete group. Make sure you are an admin.');
+    }
+  };
+
+  const handleOpenNewSnippet = () => {
+    setEditingSessionId(null);
+    setSnippetData({ subject: 'Java', title: 'Quick Snippet', aim: '', code: '', output: '' });
+    setIsSnippetModalOpen(true);
+  };
+
+  const handleOpenEditSnippet = (session) => {
+    setEditingSessionId(session.id);
+    setSnippetData({
+      subject: session.subject || 'Java',
+      title: session.title || 'Quick Snippet',
+      aim: session.aim || '',
+      code: session.code || '',
+      output: session.output || ''
+    });
+    setIsSnippetModalOpen(true);
+  };
+
+  const handleSaveSnippet = async (e) => {
+    e.preventDefault();
+    if (!snippetData.code.trim()) return;
+
+    try {
+      if (editingSessionId) {
+        const { error } = await supabase.from('sessions').update({
+          subject: snippetData.subject,
+          title: snippetData.title,
+          aim: snippetData.aim,
+          code: snippetData.code,
+          output: snippetData.output,
+          updated_at: new Date().toISOString()
+        }).eq('id', editingSessionId);
+        
+        if (error) throw error;
+        fetchMessages();
+      } else {
+        const { data: sessionData, error: sessionError } = await supabase.from('sessions').insert({
+          user_id: user.id,
+          user_email: user.email,
+          subject: snippetData.subject,
+          title: snippetData.title,
+          aim: snippetData.aim,
+          code: snippetData.code,
+          output: snippetData.output
+        }).select().single();
+        
+        if (sessionError) throw sessionError;
+        
+        const { error: msgError } = await supabase.from('group_messages').insert({
+          group_id: chatId,
+          user_id: user.id,
+          content: "Shared a Quick Snippet",
+          session_id: sessionData.id
+        });
+        
+        if (msgError) throw msgError;
+      }
+      setIsSnippetModalOpen(false);
+    } catch (err) {
+      console.error('Error saving snippet:', err);
     }
   };
 
@@ -332,9 +400,16 @@ export default function ChatRoom() {
                 
                 {msg.session_id && msg.sessions && (
                   <div className="mt-1 bg-dark-bg/60 border border-dark-border rounded-xl overflow-hidden text-left flex flex-col w-full max-w-[350px]">
-                    <div className="p-2.5 border-b border-dark-border/50 flex items-center gap-2 bg-dark-surface/80">
-                      {msg.sessions.subject === 'Java' ? <Coffee size={14} className="text-orange-400 shrink-0" /> : <Database size={14} className="text-green-400 shrink-0" />}
-                      <h4 className="font-bold text-white text-xs truncate leading-tight">{msg.sessions.title}</h4>
+                    <div className="p-2.5 border-b border-dark-border/50 flex items-center justify-between bg-dark-surface/80">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {msg.sessions.subject === 'Java' ? <Coffee size={14} className="text-orange-400 shrink-0" /> : <Database size={14} className="text-green-400 shrink-0" />}
+                        <h4 className="font-bold text-white text-xs truncate leading-tight">{msg.sessions.title}</h4>
+                      </div>
+                      {isMine && (
+                        <button onClick={() => handleOpenEditSnippet(msg.sessions)} className="text-dark-muted hover:text-white p-1 rounded hover:bg-dark-bg cursor-pointer shrink-0" title="Edit Snippet">
+                          <Edit3 size={14} />
+                        </button>
+                      )}
                     </div>
                     
                     {msg.sessions.aim && (
@@ -345,8 +420,13 @@ export default function ChatRoom() {
                     
                     {msg.sessions.code && (
                       <div className="p-0 border-b border-dark-border/50">
-                        <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-dark-surface/40 text-[9px] text-primary font-mono uppercase tracking-widest border-b border-dark-border/30">
-                          <Code size={10} /> Code Snippet
+                        <div className="flex items-center justify-between px-2.5 py-1.5 bg-dark-surface/40 border-b border-dark-border/30">
+                          <div className="flex items-center gap-1.5 text-[9px] text-primary font-mono uppercase tracking-widest">
+                            <Code size={10} /> Code Snippet
+                          </div>
+                          <button onClick={() => navigator.clipboard.writeText(msg.sessions.code)} className="text-dark-muted hover:text-white p-0.5 rounded cursor-pointer" title="Copy Code">
+                            <Copy size={12} />
+                          </button>
                         </div>
                         <pre className="p-2.5 text-[10px] md:text-[11px] font-mono text-gray-300 overflow-x-auto max-w-full max-h-32">
                           <code>{msg.sessions.code}</code>
@@ -356,8 +436,13 @@ export default function ChatRoom() {
                     
                     {msg.sessions.output && (
                       <div className="p-0">
-                        <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#0a1410] text-[9px] text-green-400 font-mono uppercase tracking-widest border-b border-dark-border/30">
-                          <Terminal size={10} /> Terminal Output
+                        <div className="flex items-center justify-between px-2.5 py-1.5 bg-[#0a1410] border-b border-dark-border/30">
+                          <div className="flex items-center gap-1.5 text-[9px] text-green-400 font-mono uppercase tracking-widest">
+                            <Terminal size={10} /> Terminal Output
+                          </div>
+                          <button onClick={() => navigator.clipboard.writeText(msg.sessions.output)} className="text-dark-muted hover:text-white p-0.5 rounded cursor-pointer" title="Copy Output">
+                            <Copy size={12} />
+                          </button>
                         </div>
                         <pre className="p-2.5 text-[10px] md:text-[11px] font-mono text-green-300 overflow-x-auto max-w-full max-h-24 bg-[#0a1410]/80">
                           <code>{msg.sessions.output}</code>
@@ -392,6 +477,14 @@ export default function ChatRoom() {
               title="Attach CodeVault Session"
             >
               <Paperclip size={20} />
+            </button>
+            <button 
+              type="button"
+              onClick={handleOpenNewSnippet}
+              className="py-3 pr-3 text-dark-muted hover:text-primary transition-colors cursor-pointer shrink-0"
+              title="Quick Code Snippet"
+            >
+              <Code size={20} />
             </button>
             <div className="flex-1 bg-dark-bg border border-dark-border rounded-2xl focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all overflow-hidden flex items-center min-h-[44px]">
               <textarea
@@ -534,6 +627,101 @@ export default function ChatRoom() {
                 <Trash2 size={16} /> Delete Group
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Snippet Modal */}
+      {isSnippetModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
+          <div className="bg-dark-bg border border-dark-border rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="p-4 border-b border-dark-border flex items-center justify-between bg-dark-surface">
+              <h3 className="text-white font-bold font-sans flex items-center gap-2">
+                <Code size={18} className="text-primary" />
+                {editingSessionId ? 'Edit Snippet' : 'Quick Snippet'}
+              </h3>
+              <button 
+                onClick={() => setIsSnippetModalOpen(false)}
+                className="text-dark-muted hover:text-white p-1 cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSaveSnippet} className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-xs font-mono text-dark-muted mb-1.5 uppercase tracking-wide">Title</label>
+                  <input
+                    type="text"
+                    value={snippetData.title}
+                    onChange={e => setSnippetData(d => ({ ...d, title: e.target.value }))}
+                    className="w-full bg-dark-surface border border-dark-border rounded-xl px-4 py-2.5 text-sm text-white focus:border-primary focus:outline-none"
+                    placeholder="e.g. My Algorithm"
+                  />
+                </div>
+                <div className="w-1/3">
+                  <label className="block text-xs font-mono text-dark-muted mb-1.5 uppercase tracking-wide">Language</label>
+                  <select
+                    value={snippetData.subject}
+                    onChange={e => setSnippetData(d => ({ ...d, subject: e.target.value }))}
+                    className="w-full bg-dark-surface border border-dark-border rounded-xl px-4 py-2.5 text-sm text-white focus:border-primary focus:outline-none"
+                  >
+                    <option value="Java">Java</option>
+                    <option value="MongoDB">MongoDB</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono text-dark-muted mb-1.5 uppercase tracking-wide">Definition / Aim</label>
+                <textarea
+                  value={snippetData.aim}
+                  onChange={e => setSnippetData(d => ({ ...d, aim: e.target.value }))}
+                  className="w-full bg-dark-surface border border-dark-border rounded-xl px-4 py-2.5 text-sm text-white focus:border-primary focus:outline-none min-h-[60px]"
+                  placeholder="Explain what this code does..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono text-primary mb-1.5 uppercase tracking-wide">Code *</label>
+                <textarea
+                  value={snippetData.code}
+                  onChange={e => setSnippetData(d => ({ ...d, code: e.target.value }))}
+                  className="w-full bg-[#0a1014] border border-[#1a2b3c] rounded-xl px-4 py-3 text-sm text-blue-300 font-mono focus:border-primary focus:outline-none min-h-[150px]"
+                  placeholder="Paste your code here..."
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono text-green-500 mb-1.5 uppercase tracking-wide">Output (Optional)</label>
+                <textarea
+                  value={snippetData.output}
+                  onChange={e => setSnippetData(d => ({ ...d, output: e.target.value }))}
+                  className="w-full bg-[#0a1410] border border-[#1a382a] rounded-xl px-4 py-3 text-sm text-green-300 font-mono focus:border-green-500 focus:outline-none min-h-[80px]"
+                  placeholder="Paste the terminal output here..."
+                />
+              </div>
+
+              <div className="pt-4 border-t border-dark-border mt-2 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsSnippetModalOpen(false)}
+                  className="flex-1 py-2.5 bg-dark-bg border border-dark-border text-white font-bold rounded-xl hover:bg-dark-surface transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!snippetData.code.trim()}
+                  className="flex-1 py-2.5 bg-primary hover:bg-primary/90 text-dark-bg font-bold rounded-xl transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex justify-center items-center gap-2"
+                >
+                  <Send size={16} />
+                  {editingSessionId ? 'Save Changes' : 'Send Snippet'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

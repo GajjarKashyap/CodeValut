@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Send, Paperclip, MoreVertical, ShieldAlert, X, Coffee, Database, Search, Code, Terminal, Users, UserPlus, Check, Trash2, Edit2, Copy, Edit3 } from 'lucide-react';
+import { ArrowLeft, Send, Paperclip, MoreVertical, ShieldAlert, X, Coffee, Database, Search, Code, Terminal, Users, UserPlus, Check, Trash2, Edit2, Copy, Edit3, CornerUpLeft, SmilePlus } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function ChatRoom() {
@@ -15,6 +15,8 @@ export default function ChatRoom() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(null);
   
   // Modal state for Session
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
@@ -61,9 +63,17 @@ export default function ChatRoom() {
         setTimeout(scrollToBottom, 50);
       })
       .subscribe();
+
+    const reactionsChannel = supabase
+      .channel(`chat_reactions_${chatId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, () => {
+        fetchMessages();
+      })
+      .subscribe();
       
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(reactionsChannel);
     };
   }, [chatId]);
 
@@ -109,7 +119,7 @@ export default function ChatRoom() {
     try {
       const { data, error } = await supabase
         .from('group_messages')
-        .select('*, sessions(id, title, subject, aim, code, output)')
+        .select('*, sessions(id, title, subject, aim, code, output), message_reactions(*)')
         .eq('group_id', chatId)
         .order('created_at', { ascending: true });
         
@@ -135,10 +145,14 @@ export default function ChatRoom() {
       group_id: chatId,
       user_id: user.id,
       content: messageContent,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      reply_to_id: replyingTo?.id || null,
+      message_reactions: []
     };
     
     setMessages(prev => [...prev, tempMsg]);
+    const currentReplyToId = replyingTo?.id || null;
+    setReplyingTo(null);
     
     try {
       const { error } = await supabase
@@ -147,13 +161,32 @@ export default function ChatRoom() {
           id: tempId,
           group_id: chatId,
           user_id: user.id,
-          content: messageContent
+          content: messageContent,
+          reply_to_id: currentReplyToId
         });
         
       if (error) throw error;
     } catch (err) {
       console.error('Failed to send message:', err);
       setMessages(prev => prev.filter(m => m.id !== tempId));
+    }
+  };
+
+  const handleToggleReaction = async (messageId, emoji) => {
+    setShowEmojiPicker(null);
+    const msg = messages.find(m => m.id === messageId);
+    const existing = msg?.message_reactions?.find(r => r.user_id === user.id);
+    
+    try {
+      if (existing && existing.emoji === emoji) {
+        await supabase.from('message_reactions').delete().eq('id', existing.id);
+      } else {
+        await supabase.from('message_reactions').delete().eq('message_id', messageId).eq('user_id', user.id);
+        await supabase.from('message_reactions').insert({ message_id: messageId, user_id: user.id, emoji });
+      }
+      fetchMessages();
+    } catch (err) {
+      console.error('Error toggling reaction', err);
     }
   };
 
@@ -415,12 +448,53 @@ export default function ChatRoom() {
                 </span>
               )}
               <div 
-                className={`relative px-4 py-2.5 rounded-2xl shadow-md text-sm font-sans flex flex-col gap-2 ${
+                className={`relative group px-4 py-2.5 rounded-2xl shadow-md text-sm font-sans flex flex-col gap-2 ${
+
                   isMine 
                     ? 'bg-[#0f211c] text-white border border-[#1a3830] rounded-tr-sm' 
                     : 'bg-dark-surface text-white border border-dark-border rounded-tl-sm'
                 }`}
               >
+                
+                {/* Reply/React Hover Buttons */}
+                <div className={`absolute top-0 ${isMine ? '-left-16' : '-right-16'} opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-dark-bg border border-dark-border rounded-lg shadow-lg z-20`}>
+                  <button onClick={() => setShowEmojiPicker(showEmojiPicker === msg.id ? null : msg.id)} className="p-1.5 text-dark-muted hover:text-primary transition-colors cursor-pointer" title="React">
+                    <SmilePlus size={16} />
+                  </button>
+                  <button onClick={() => setReplyingTo(msg)} className="p-1.5 text-dark-muted hover:text-primary transition-colors cursor-pointer" title="Reply">
+                    <CornerUpLeft size={16} />
+                  </button>
+                  
+                  {/* Emoji Picker Popover */}
+                  {showEmojiPicker === msg.id && (
+                    <div className={`absolute top-full mt-1 ${isMine ? 'right-0' : 'left-0'} bg-dark-surface border border-dark-border rounded-full p-1.5 shadow-xl flex items-center gap-1 z-30`}>
+                      {['👍', '❤️', '😂', '😮', '😢', '👏'].map(emoji => (
+                        <button key={emoji} onClick={() => handleToggleReaction(msg.id, emoji)} className="hover:scale-125 transition-transform text-lg cursor-pointer px-1">
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Replied Message Quote Box */}
+                {msg.reply_to_id && (
+                  <div className="bg-[#0a1410]/50 p-2 rounded-lg border-l-2 border-primary mb-1 text-xs text-dark-muted cursor-pointer hover:bg-[#0a1410]/80 transition-colors">
+                    <div className="flex items-center gap-1 font-bold text-primary mb-0.5">
+                      <CornerUpLeft size={10} /> 
+                      Replying to
+                    </div>
+                    <div className="truncate">
+                      {(() => {
+                        const parent = messages.find(m => m.id === msg.reply_to_id);
+                        if (!parent) return 'Original message...';
+                        if (parent.session_id) return 'Code Snippet';
+                        return parent.content;
+                      })()}
+                    </div>
+                  </div>
+                )}
+
                 <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                 
                 {msg.session_id && msg.sessions && (
@@ -480,6 +554,35 @@ export default function ChatRoom() {
                 <div className={`text-[9px] mt-0.5 text-right font-mono ${isMine ? 'text-primary/70' : 'text-dark-muted'}`}>
                   {format(new Date(msg.created_at), 'HH:mm')}
                 </div>
+
+                {/* Reactions Badge */}
+                {msg.message_reactions && msg.message_reactions.length > 0 && (
+                  <div className={`absolute -bottom-3 ${isMine ? 'right-2' : 'left-2'} z-10 flex gap-1`}>
+                    {Object.entries(
+                      msg.message_reactions.reduce((acc, r) => {
+                        acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+                        return acc;
+                      }, {})
+                    ).map(([emoji, count]) => {
+                      const hasReacted = msg.message_reactions.some(r => r.user_id === user.id && r.emoji === emoji);
+                      return (
+                        <button 
+                          key={emoji} 
+                          onClick={() => handleToggleReaction(msg.id, emoji)}
+                          className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold border cursor-pointer transition-colors shadow-sm ${
+                            hasReacted 
+                              ? 'bg-primary/20 border-primary text-primary' 
+                              : 'bg-dark-surface border-dark-border text-white hover:border-primary/50'
+                          }`}
+                        >
+                          <span>{emoji}</span>
+                          <span>{count}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
               </div>
             </div>
           );
@@ -494,7 +597,23 @@ export default function ChatRoom() {
             <span>Only admins can send messages</span>
           </div>
         ) : (
-          <form onSubmit={handleSendMessage} className="flex items-end gap-2 max-w-4xl mx-auto">
+          <form onSubmit={handleSendMessage} className="flex flex-col gap-2 max-w-4xl mx-auto w-full">
+            {replyingTo && (
+              <div className="flex items-center justify-between bg-dark-bg border-l-2 border-primary rounded-r-xl p-3 mx-12">
+                <div className="min-w-0">
+                  <div className="text-primary text-xs font-bold flex items-center gap-1 mb-1">
+                    <CornerUpLeft size={12} /> Replying
+                  </div>
+                  <div className="text-dark-muted text-xs truncate">
+                    {replyingTo.session_id ? 'Code Snippet' : replyingTo.content}
+                  </div>
+                </div>
+                <button type="button" onClick={() => setReplyingTo(null)} className="p-1 text-dark-muted hover:text-white cursor-pointer rounded-full hover:bg-dark-surface">
+                  <X size={16} />
+                </button>
+              </div>
+            )}
+            <div className="flex items-end gap-2 w-full">
             <button 
               type="button"
               onClick={handleOpenSessionModal}
@@ -533,6 +652,7 @@ export default function ChatRoom() {
             >
               <Send size={18} className="translate-x-[1px]" />
             </button>
+            </div>
           </form>
         )}
       </footer>

@@ -51,16 +51,14 @@ export default function ChatRoom() {
         filter: `group_id=eq.${chatId}`
       }, async (payload) => {
         let newMsg = payload.new;
+        setMessages(prev => {
+          if (prev.some(m => m.id === newMsg.id)) return prev;
+          return [...prev, newMsg];
+        });
         if (newMsg.session_id) {
-          const { data } = await supabase
-            .from('sessions')
-            .select('id, title, subject, aim, code, output')
-            .eq('id', newMsg.session_id)
-            .single();
-          if (data) newMsg.sessions = data;
+          fetchMessages();
         }
-        setMessages(prev => [...prev, newMsg]);
-        scrollToBottom();
+        setTimeout(scrollToBottom, 50);
       })
       .subscribe();
       
@@ -128,21 +126,34 @@ export default function ChatRoom() {
     e.preventDefault();
     if (!newMessage.trim()) return;
     
-    const messageContent = newMessage;
+    const messageContent = newMessage.trim();
     setNewMessage('');
+    
+    const tempId = crypto.randomUUID();
+    const tempMsg = {
+      id: tempId,
+      group_id: chatId,
+      user_id: user.id,
+      content: messageContent,
+      created_at: new Date().toISOString()
+    };
+    
+    setMessages(prev => [...prev, tempMsg]);
     
     try {
       const { error } = await supabase
         .from('group_messages')
         .insert({
+          id: tempId,
           group_id: chatId,
           user_id: user.id,
-          content: messageContent.trim()
+          content: messageContent
         });
         
       if (error) throw error;
     } catch (err) {
       console.error('Failed to send message:', err);
+      setMessages(prev => prev.filter(m => m.id !== tempId));
     }
   };
 
@@ -271,7 +282,21 @@ export default function ChatRoom() {
         
         if (sessionError) throw sessionError;
         
+        const tempId = crypto.randomUUID();
+        const tempMsg = {
+          id: tempId,
+          group_id: chatId,
+          user_id: user.id,
+          content: "Shared a Quick Snippet",
+          created_at: new Date().toISOString(),
+          session_id: sessionData.id,
+          sessions: sessionData
+        };
+        
+        setMessages(prev => [...prev, tempMsg]);
+        
         const { error: msgError } = await supabase.from('group_messages').insert({
+          id: tempId,
           group_id: chatId,
           user_id: user.id,
           content: "Shared a Quick Snippet",
@@ -382,7 +407,7 @@ export default function ChatRoom() {
           return (
             <div 
               key={msg.id} 
-              className={`flex flex-col w-full max-w-[85%] md:max-w-[75%] ${isMine ? 'self-end' : 'self-start'}`}
+              className={`flex flex-col w-full max-w-[95%] sm:max-w-[85%] md:max-w-[75%] ${isMine ? 'self-end' : 'self-start'}`}
             >
               {!group?.is_direct_message && !isMine && (
                 <span className="text-[10px] font-mono text-dark-muted ml-1 mb-1">
@@ -428,7 +453,7 @@ export default function ChatRoom() {
                             <Copy size={12} />
                           </button>
                         </div>
-                        <pre className="p-2.5 text-[10px] md:text-[11px] font-mono text-gray-300 overflow-x-auto max-w-full max-h-32">
+                        <pre className="p-2.5 text-[11px] md:text-[12px] font-mono text-gray-300 overflow-x-auto w-full max-h-[40vh]">
                           <code>{msg.sessions.code}</code>
                         </pre>
                       </div>
@@ -444,7 +469,7 @@ export default function ChatRoom() {
                             <Copy size={12} />
                           </button>
                         </div>
-                        <pre className="p-2.5 text-[10px] md:text-[11px] font-mono text-green-300 overflow-x-auto max-w-full max-h-24 bg-[#0a1410]/80">
+                        <pre className="p-2.5 text-[11px] md:text-[12px] font-mono text-green-300 overflow-x-auto w-full max-h-[30vh] bg-[#0a1410]/80">
                           <code>{msg.sessions.output}</code>
                         </pre>
                       </div>
@@ -473,7 +498,7 @@ export default function ChatRoom() {
             <button 
               type="button"
               onClick={handleOpenSessionModal}
-              className="p-3 text-dark-muted hover:text-primary transition-colors cursor-pointer shrink-0"
+              className="p-2 sm:p-3 text-dark-muted hover:text-primary transition-colors cursor-pointer shrink-0"
               title="Attach CodeVault Session"
             >
               <Paperclip size={20} />
@@ -481,7 +506,7 @@ export default function ChatRoom() {
             <button 
               type="button"
               onClick={handleOpenNewSnippet}
-              className="py-3 pr-3 text-dark-muted hover:text-primary transition-colors cursor-pointer shrink-0"
+              className="p-2 sm:p-3 text-dark-muted hover:text-primary transition-colors cursor-pointer shrink-0"
               title="Quick Code Snippet"
             >
               <Code size={20} />
@@ -649,7 +674,7 @@ export default function ChatRoom() {
             </div>
             
             <form onSubmit={handleSaveSnippet} className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1">
                   <label className="block text-xs font-mono text-dark-muted mb-1.5 uppercase tracking-wide">Title</label>
                   <input
@@ -660,7 +685,7 @@ export default function ChatRoom() {
                     placeholder="e.g. My Algorithm"
                   />
                 </div>
-                <div className="w-1/3">
+                <div className="w-full sm:w-1/3">
                   <label className="block text-xs font-mono text-dark-muted mb-1.5 uppercase tracking-wide">Language</label>
                   <select
                     value={snippetData.subject}

@@ -121,13 +121,21 @@ export default function Share() {
               </span>
             </div>
           </div>
-          <button
-            onClick={exportAsTxt}
-            className="flex items-center space-x-2 bg-dark-bg border border-dark-border hover:border-primary text-dark-muted hover:text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors cursor-pointer font-sans"
-          >
-            <Download size={16} />
-            <span>Download</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <a
+              href="#/login"
+              className="bg-primary/10 border border-primary/20 hover:border-primary/50 hover:bg-primary/15 text-primary px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer font-sans"
+            >
+              Sign In
+            </a>
+            <button
+              onClick={exportAsTxt}
+              className="flex items-center space-x-2 bg-dark-bg border border-dark-border hover:border-primary text-dark-muted hover:text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors cursor-pointer font-sans"
+            >
+              <Download size={16} />
+              <span className="hidden sm:inline">Download</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -274,6 +282,36 @@ export default function Share() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Promotion & Action Card */}
+        <div className="bg-dark-surface border border-primary/20 p-6 md:p-8 rounded-2xl shadow-xl space-y-5 text-center relative overflow-hidden mt-6">
+          <div className="absolute top-[-20%] left-[-10%] w-[300px] h-[300px] rounded-full bg-primary/5 blur-[80px] pointer-events-none" />
+          <div className="absolute bottom-[-20%] right-[-10%] w-[300px] h-[300px] rounded-full bg-primary/5 blur-[80px] pointer-events-none" />
+          
+          <div className="max-w-xl mx-auto space-y-4">
+            <h3 className="text-xl font-bold text-white font-serif">Organize Your College Practicals with CodeVault</h3>
+            <p className="text-dark-muted text-sm leading-relaxed font-sans">
+              CodeVault is a secure, premium digital lab notebook designed to manage Java and MongoDB sessions, recover lost drafts, and share solutions instantly.
+            </p>
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <a
+                href="#/login"
+                className="bg-primary hover:bg-primary/90 text-dark-bg font-bold px-6 py-2.5 rounded-xl transition-all duration-300 transform active:scale-95 shadow-md shadow-primary/10 hover:shadow-primary/20 font-sans text-sm inline-block cursor-pointer"
+              >
+                Sign In
+              </a>
+              <a
+                href="mailto:2072@admin.com?subject=CodeVault Account Request&body=Hi, I would like to request an account on CodeVault. My student details are:%0A- Name:%0A- Student ID:%0A- Class/Year:"
+                className="bg-dark-bg border border-dark-border hover:border-primary/50 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors duration-300 font-sans text-sm inline-block cursor-pointer"
+              >
+                Request Account from Dev
+              </a>
+            </div>
+            <p className="text-[10px] text-dark-border font-mono uppercase tracking-widest pt-2">
+              Dev: Kashyap Gajjar — In Beta Phase
+            </p>
+          </div>
         </div>
       </main>
     </div>

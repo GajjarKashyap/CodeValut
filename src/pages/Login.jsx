@@ -110,6 +110,19 @@ export default function Login() {
               {loading ? 'Establishing connection...' : 'Access Vault'}
             </button>
           </form>
+          
+          {/* Account Request Info */}
+          <div className="text-center pt-3 border-t border-dark-border/40">
+            <p className="text-xs text-dark-muted font-sans">
+              New user? Accounts are managed by the administrator.
+            </p>
+            <a 
+              href="mailto:2072@admin.com?subject=CodeVault Account Request&body=Hi, I would like to request an account on CodeVault. My student details are:%0A- Name:%0A- Student ID:%0A- Class/Year:"
+              className="text-xs text-primary hover:underline font-mono mt-1 inline-block"
+            >
+              Request Access from Dev Kashyap Gajjar
+            </a>
+          </div>
         </div>
 
         {/* System Footer Accent */}

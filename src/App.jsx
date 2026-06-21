@@ -8,6 +8,8 @@ import SessionList from './pages/SessionList';
 import Search from './pages/Search';
 import Share from './pages/Share';
 import Archive from './pages/Archive';
+import ChatDashboard from './pages/ChatDashboard';
+import ChatRoom from './pages/ChatRoom';
 import NotFound from './pages/NotFound';
 
 const ProtectedRoute = ({ children }) => {
@@ -33,6 +35,8 @@ function App() {
           <Route path="/share/:shareId" element={<Share />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
+            <Route path="chat" element={<ChatDashboard />} />
+            <Route path="chat/:chatId" element={<ChatRoom />} />
             <Route path="session/new" element={<SessionForm />} />
             <Route path="session/:id" element={<SessionForm />} />
             <Route path="sessions/:subject" element={<SessionList />} />

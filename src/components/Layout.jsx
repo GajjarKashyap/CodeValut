@@ -1,7 +1,7 @@
 ﻿import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Home, Coffee, Database, Search, Star, LogOut, PlusSquare, ShieldCheck, Zap, Archive } from 'lucide-react';
+import { Home, Coffee, Database, Search, Star, LogOut, PlusSquare, ShieldCheck, Zap, Archive, MessageCircle } from 'lucide-react';
 
 export default function Layout() {
   const { user } = useAuth();
@@ -15,6 +15,7 @@ export default function Layout() {
 
   const navLinks = [
     { to: "/", icon: <Home size={20} />, label: "Dashboard" },
+    { to: "/chat", icon: <MessageCircle size={20} />, label: "Chat" },
     { to: "/sessions/java", icon: <Coffee size={20} />, label: "Java" },
     { to: "/sessions/mongodb", icon: <Database size={20} />, label: "MongoDB" },
     { to: "/search", icon: <Search size={20} />, label: "Search" },

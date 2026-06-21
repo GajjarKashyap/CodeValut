@@ -15,6 +15,24 @@ export default function Share() {
     localStorage.getItem('codevault_editor_mode') === 'simple'
   );
 
+  const formatDateTime = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return 'N/A';
+    return d.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+  };
+
+  const formatRelativeTime = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return 'N/A';
+    try {
+      return formatDistanceToNow(d, { addSuffix: true });
+    } catch (e) {
+      return 'N/A';
+    }
+  };
+
   useEffect(() => {
     const fetchSharedSession = async () => {
       setLoading(true);
@@ -53,7 +71,7 @@ export default function Share() {
     if (!session) return;
     const content = [
       'Title: ' + session.title,
-      'Date: ' + new Date(session.updated_at).toLocaleDateString(),
+      'Date: ' + (session.updated_at && !isNaN(new Date(session.updated_at).getTime()) ? new Date(session.updated_at).toLocaleDateString() : 'N/A'),
       'Subject: ' + session.subject,
       'Topic: ' + session.topic,
       '',
@@ -181,14 +199,14 @@ export default function Share() {
               <Calendar size={14} className="text-primary" />
               <span className="text-dark-muted">Created:</span>
               <span className="text-white font-medium">
-                {new Date(session.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
+                {formatDateTime(session.created_at)}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <Clock size={14} className="text-primary" />
               <span className="text-dark-muted">Updated:</span>
               <span className="text-white font-medium">
-                {formatDistanceToNow(new Date(session.updated_at || new Date()), { addSuffix: true })}
+                {formatRelativeTime(session.updated_at)}
               </span>
             </div>
           </div>

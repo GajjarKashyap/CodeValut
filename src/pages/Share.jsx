@@ -10,6 +10,7 @@ export default function Share() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copiedSection, setCopiedSection] = useState('');
+  const [showRequestModal, setShowRequestModal] = useState(false);
   const [useSimpleEditor, setUseSimpleEditor] = useState(
     localStorage.getItem('codevault_editor_mode') === 'simple'
   );
@@ -303,14 +304,10 @@ export default function Share() {
               </a>
               <button
                 type="button"
-                onClick={() => {
-                  navigator.clipboard.writeText('kashayapgajjar71@gmail.com');
-                  copyToClipboard('kashayapgajjar71@gmail.com', 'admin_email');
-                  window.open("mailto:kashayapgajjar71@gmail.com?subject=CodeVault%20Account%20Request&body=Hi%20Kashyap,%0D%0A%0D%0AI%20would%20like%20to%20request%20a%20new%20student%20account%20on%20CodeVault.%0D%0A%0D%0AHere%20are%20my%20details:%0D%0A-%20Full%20Name:%20[Enter%20Your%20Name]%0D%0A-%20Roll%20Number%20/%20Student%20ID:%20[Enter%20ID]%0D%0A-%20Class%20/%20Batch:%20[Enter%20Class]%0D%0A-%20Preferred%20Login%20Email:%20[Enter%20Email]%0D%0A%0D%0AThank%20you!", "_blank");
-                }}
+                onClick={() => setShowRequestModal(true)}
                 className="bg-dark-bg border border-dark-border hover:border-primary/50 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors duration-300 font-sans text-sm inline-block cursor-pointer min-w-[190px]"
               >
-                {copiedSection === 'admin_email' ? 'Email Copied to Clipboard!' : 'Request Account from Dev'}
+                Request Account from Dev
               </button>
             </div>
             <p className="text-[10px] text-dark-border font-mono uppercase tracking-widest pt-2">
@@ -319,6 +316,101 @@ export default function Share() {
           </div>
         </div>
       </main>
+
+      {showRequestModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-dark-surface border border-primary/20 p-6 md:p-8 rounded-2xl max-w-lg w-full space-y-5 shadow-2xl relative animate-fadeIn text-left">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-dark-border pb-3">
+              <h3 className="text-lg font-bold text-white font-serif flex items-center gap-2">
+                <Mail size={18} className="text-primary" /> Request Account
+              </h3>
+              <button 
+                onClick={() => setShowRequestModal(false)}
+                className="text-dark-muted hover:text-white transition-colors cursor-pointer text-sm font-mono"
+              >
+                [ESC/CLOSE]
+              </button>
+            </div>
+
+            <p className="text-xs text-dark-muted leading-relaxed font-sans">
+              Copy the details below and send them to the developer to get your account created.
+            </p>
+
+            {/* Copy Fields */}
+            <div className="space-y-4 font-sans text-sm">
+              {/* Email */}
+              <div className="space-y-1">
+                <label className="block text-[10px] font-semibold text-dark-muted uppercase tracking-wider font-mono">Recipient Email</label>
+                <div className="flex items-center bg-dark-bg border border-dark-border rounded-xl p-2.5 gap-2">
+                  <span className="text-white text-xs font-mono select-all truncate flex-1">kashayapgajjar71@gmail.com</span>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      navigator.clipboard.writeText('kashayapgajjar71@gmail.com');
+                      copyToClipboard('kashayapgajjar71@gmail.com', 'admin_email');
+                    }}
+                    className="text-xs text-primary hover:text-primary/80 font-mono flex items-center gap-1 cursor-pointer shrink-0"
+                  >
+                    {copiedSection === 'admin_email' ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
+                    {copiedSection === 'admin_email' ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Subject */}
+              <div className="space-y-1">
+                <label className="block text-[10px] font-semibold text-dark-muted uppercase tracking-wider font-mono">Subject</label>
+                <div className="flex items-center bg-dark-bg border border-dark-border rounded-xl p-2.5 gap-2">
+                  <span className="text-white text-xs font-mono select-all truncate flex-1">CodeVault Account Request</span>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      navigator.clipboard.writeText('CodeVault Account Request');
+                      copyToClipboard('CodeVault Account Request', 'admin_subject');
+                    }}
+                    className="text-xs text-primary hover:text-primary/80 font-mono flex items-center gap-1 cursor-pointer shrink-0"
+                  >
+                    {copiedSection === 'admin_subject' ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
+                    {copiedSection === 'admin_subject' ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Body Template */}
+              <div className="space-y-1">
+                <label className="block text-[10px] font-semibold text-dark-muted uppercase tracking-wider font-mono">Email Body Template</label>
+                <div className="relative bg-dark-bg border border-dark-border rounded-xl p-4">
+                  <pre className="text-white text-xs font-sans whitespace-pre-wrap leading-relaxed select-all overflow-y-auto max-h-[160px] pb-8 pr-2">{"Hi Kashyap,\n\nI would like to request a new student account on CodeVault.\n\nHere are my details:\n- Full Name: [Enter Your Name]\n- Roll Number / Student ID: [Enter ID]\n- Class / Batch: [Enter Class]\n- Preferred Login Email: [Enter Email]\n\nThank you!"}</pre>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      navigator.clipboard.writeText("Hi Kashyap,\n\nI would like to request a new student account on CodeVault.\n\nHere are my details:\n- Full Name: [Enter Your Name]\n- Roll Number / Student ID: [Enter ID]\n- Class / Batch: [Enter Class]\n- Preferred Login Email: [Enter Email]\n\nThank you!");
+                      copyToClipboard("Hi Kashyap,\n\nI would like to request a new student account on CodeVault.\n\nHere are my details:\n- Full Name: [Enter Your Name]\n- Roll Number / Student ID: [Enter ID]\n- Class / Batch: [Enter Class]\n- Preferred Login Email: [Enter Email]\n\nThank you!", 'admin_body');
+                    }}
+                    className="absolute right-3 bottom-3 bg-dark-surface border border-dark-border hover:border-primary/50 text-xs text-primary hover:text-primary/80 font-mono flex items-center gap-1.5 px-3 py-1 rounded-lg cursor-pointer shadow-lg"
+                  >
+                    {copiedSection === 'admin_body' ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
+                    {copiedSection === 'admin_body' ? 'Template Copied!' : 'Copy Template'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Close Action */}
+            <button 
+              type="button"
+              onClick={() => {
+                setShowRequestModal(false);
+                window.open("mailto:kashayapgajjar71@gmail.com?subject=CodeVault%20Account%20Request&body=Hi%20Kashyap,%0D%0A%0D%0AI%20would%20like%20to%20request%20a%20new%20student%20account%20on%20CodeVault.%0D%0A%0D%0AHere%20are%20my%20details:%0D%0A-%20Full%20Name:%20[Enter%20Your%20Name]%0D%0A-%20Roll%20Number%20/%20Student%20ID:%20[Enter%20ID]%0D%0A-%20Class%20/%20Batch:%20[Enter%20Class]%0D%0A-%20Preferred%20Login%20Email:%20[Enter%20Email]%0D%0A%0D%0AThank%20you!", "_blank");
+              }}
+              className="w-full bg-primary hover:bg-primary/90 text-dark-bg font-bold py-2.5 rounded-xl transition-all duration-300 transform active:scale-95 cursor-pointer font-sans text-sm mt-2"
+            >
+              Done — Open Email App
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

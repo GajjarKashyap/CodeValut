@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Coffee, Download, Star, User, Check, Sparkles, ShieldCheck, Code, Smartphone } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function DownloadApp() {
   const [reviews, setReviews] = useState([]);
@@ -10,6 +11,71 @@ export default function DownloadApp() {
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch reviews on mount and subscribe to realtime updates
+  useEffect(() => {
+    fetchReviews();
+
+    const channel = supabase
+      .channel('app_reviews_realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'app_reviews' },
+        (payload) => {
+          const newRev = {
+            id: payload.new.id,
+            name: payload.new.name,
+            rating: payload.new.rating,
+            comment: payload.new.comment,
+            date: new Date(payload.new.created_at).toLocaleDateString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric'
+            })
+          };
+          setReviews((prev) => {
+            if (prev.some((r) => r.id === newRev.id)) return prev;
+            return [newRev, ...prev];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchReviews = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('app_reviews')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (data) {
+        const formatted = data.map((r) => ({
+          id: r.id,
+          name: r.name,
+          rating: r.rating,
+          comment: r.comment,
+          date: new Date(r.created_at).toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+          })
+        }));
+        setReviews(formatted);
+      }
+    } catch (err) {
+      console.error('Error fetching reviews:', err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Stats calculation
   const totalReviewsCount = reviews.length;
@@ -37,24 +103,62 @@ export default function DownloadApp() {
     window.location.hash = '/login';
   };
 
-  const handleSubmitReview = (e) => {
+  const handleSubmitReview = async (e) => {
     e.preventDefault();
     if (!name.trim() || !comment.trim()) return;
 
-    const newReview = {
-      id: Date.now(),
+    const reviewData = {
       name: name.trim(),
       rating: rating,
-      comment: comment.trim(),
-      date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+      comment: comment.trim()
     };
 
-    setReviews([newReview, ...reviews]);
-    setName('');
-    setComment('');
-    setRating(5);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 4000);
+    // Optimistic update
+    const tempId = 'temp-' + Date.now();
+    const tempReview = {
+      id: tempId,
+      ...reviewData,
+      date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    };
+    setReviews((prev) => [tempReview, ...prev]);
+
+    try {
+      const { data, error } = await supabase
+        .from('app_reviews')
+        .insert(reviewData)
+        .select();
+
+      if (error) throw error;
+
+      if (data && data[0]) {
+        const savedReview = {
+          id: data[0].id,
+          name: data[0].name,
+          rating: data[0].rating,
+          comment: data[0].comment,
+          date: new Date(data[0].created_at).toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+          })
+        };
+        // Replace optimistic temp review with actual database review
+        setReviews((prev) =>
+          prev.map((r) => (r.id === tempId ? savedReview : r))
+        );
+      }
+
+      setName('');
+      setComment('');
+      setRating(5);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 4000);
+    } catch (err) {
+      console.error('Error submitting review:', err.message);
+      // Rollback optimistic update
+      setReviews((prev) => prev.filter((r) => r.id !== tempId));
+      alert('Failed to submit review. Make sure the app_reviews table is created in Supabase!');
+    }
   };
 
   return (
@@ -371,7 +475,11 @@ export default function DownloadApp() {
 
           {/* Active reviews list */}
           <div className="space-y-4">
-            {reviews.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-12 border border-dashed border-dark-border rounded-2xl bg-dark-surface/10">
+                <p className="text-xs text-dark-muted font-mono animate-pulse">Loading reviews from database...</p>
+              </div>
+            ) : reviews.length === 0 ? (
               <div className="text-center py-12 border border-dashed border-dark-border rounded-2xl bg-dark-surface/10">
                 <p className="text-xs text-dark-muted font-sans">No reviews yet. Be the first to share your experience!</p>
               </div>

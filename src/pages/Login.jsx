@@ -217,7 +217,7 @@ export default function Login() {
             </div>
           </div>
           <a 
-            href="https://github.com/GajjarKashyap/CodeValut/actions" 
+            href="https://github.com/GajjarKashyap/CodeValut/releases/download/latest/app-debug.apk" 
             target="_blank" 
             rel="noopener noreferrer"
             className="theme-bg-primary-15 border theme-border-primary-45 text-primary text-[9px] font-bold py-2 px-3.5 rounded-lg uppercase tracking-widest hover:bg-primary hover:text-dark-bg transition-all duration-300 whitespace-nowrap cursor-pointer shadow-md shrink-0 text-center"

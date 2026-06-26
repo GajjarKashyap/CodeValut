@@ -142,7 +142,7 @@ export default function SessionList({ filter }) {
                   </button>
                   <button
                     onClick={(e) => handleArchive(session.id, e)}
-                    className="p-2 text-dark-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                    className="p-2 text-dark-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                   >
                     <Trash2 size={17} />
                   </button>

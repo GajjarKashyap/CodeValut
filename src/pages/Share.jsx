@@ -39,7 +39,7 @@ export default function Share() {
       try {
         const { data, error } = await supabase
           .from('sessions')
-          .select('*')
+          .select('id, title, subject, topic, aim, code, output, notes, tags, is_shared, share_id, updated_at')
           .eq('share_id', shareId)
           .single();
 

@@ -90,19 +90,29 @@ export default function ChatRoom() {
       .on('presence', { event: 'sync' }, () => {
         const state = pChannel.presenceState();
         const currentlyTyping = [];
+        const userIdsToFetch = [];
         for (const id in state) {
           if (id !== user.id) {
             const presences = state[id];
             if (presences.some(p => p.typing)) {
-              currentlyTyping.push(presences[0].user_email);
+              currentlyTyping.push({
+                user_id: presences[0].user_id || id,
+                user_email: presences[0].user_email
+              });
+              if (presences[0].user_id) {
+                userIdsToFetch.push(presences[0].user_id);
+              }
             }
           }
         }
         setTypingUsers(currentlyTyping);
+        if (userIdsToFetch.length > 0) {
+          fetchProfiles(userIdsToFetch);
+        }
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          await pChannel.track({ user_email: user.email, typing: false }).catch(() => {});
+          await pChannel.track({ user_id: user.id, user_email: user.email, typing: false }).catch(() => {});
         }
       });
       
@@ -111,8 +121,44 @@ export default function ChatRoom() {
     // 3. Reactions Channel
     const reactionsChannel = supabase
       .channel(`chat_reactions_${chatId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, () => {
-        fetchMessages();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const newReaction = payload.new;
+          setMessages(prev => prev.map(msg => {
+            if (msg.id === newReaction.message_id) {
+              const exists = msg.message_reactions?.some(r => r.id === newReaction.id);
+              return {
+                ...msg,
+                message_reactions: exists 
+                  ? msg.message_reactions 
+                  : [...(msg.message_reactions || []), newReaction]
+              };
+            }
+            return msg;
+          }));
+        } else if (payload.eventType === 'DELETE') {
+          const oldReaction = payload.old;
+          setMessages(prev => prev.map(msg => {
+            if (msg.message_reactions?.some(r => r.id === oldReaction.id)) {
+              return {
+                ...msg,
+                message_reactions: msg.message_reactions.filter(r => r.id !== oldReaction.id)
+              };
+            }
+            return msg;
+          }));
+        } else if (payload.eventType === 'UPDATE') {
+          const updatedReaction = payload.new;
+          setMessages(prev => prev.map(msg => {
+            if (msg.id === updatedReaction.message_id) {
+              return {
+                ...msg,
+                message_reactions: msg.message_reactions?.map(r => r.id === updatedReaction.id ? updatedReaction : r) || []
+              };
+            }
+            return msg;
+          }));
+        }
       })
       .subscribe();
       
@@ -223,7 +269,7 @@ export default function ChatRoom() {
     if (!isTypingRef.current && presenceChannelRef.current) {
       isTypingRef.current = true;
       try {
-        await presenceChannelRef.current.track({ user_email: user.email, typing: true });
+        await presenceChannelRef.current.track({ user_id: user.id, user_email: user.email, typing: true });
       } catch (err) { /* ignore */ }
     }
     
@@ -233,7 +279,7 @@ export default function ChatRoom() {
       isTypingRef.current = false;
       if (presenceChannelRef.current) {
         try {
-          await presenceChannelRef.current.track({ user_email: user.email, typing: false });
+          await presenceChannelRef.current.track({ user_id: user.id, user_email: user.email, typing: false });
         } catch (err) { /* ignore */ }
       }
     }, 2000);
@@ -264,7 +310,7 @@ export default function ChatRoom() {
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     isTypingRef.current = false;
     if (presenceChannelRef.current) {
-      presenceChannelRef.current.track({ user_email: user.email, typing: false }).catch(() => {});
+      presenceChannelRef.current.track({ user_id: user.id, user_email: user.email, typing: false }).catch(() => {});
     }
     
     try {
@@ -721,8 +767,8 @@ export default function ChatRoom() {
                 </div>
                 <span className="text-[10px] text-dark-muted font-mono tracking-widest italic truncate max-w-[200px]">
                   {typingUsers.length === 1 
-                    ? `${userProfiles[typingUsers[0]]?.username || typingUsers[0].split('@')[0]} is typing...`
-                    : `${userProfiles[typingUsers[0]]?.username || typingUsers[0].split('@')[0]} & ${typingUsers.length - 1} other${typingUsers.length > 2 ? 's' : ''} typing...`}
+                    ? `${profiles[typingUsers[0].user_id]?.display_name || profiles[typingUsers[0].user_id]?.username || userProfiles[typingUsers[0].user_email]?.username || typingUsers[0].user_email.split('@')[0]} is typing...`
+                    : `${profiles[typingUsers[0].user_id]?.display_name || profiles[typingUsers[0].user_id]?.username || userProfiles[typingUsers[0].user_email]?.username || typingUsers[0].user_email.split('@')[0]} & ${typingUsers.length - 1} other${typingUsers.length > 2 ? 's' : ''} typing...`}
                 </span>
               </div>
             </div>

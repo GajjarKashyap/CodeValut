@@ -17,9 +17,12 @@ export default function SessionForm() {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedField, setCopiedField] = useState('');
-  const [useSimpleEditor, setUseSimpleEditor] = useState(
-    localStorage.getItem('codevault_editor_mode') === 'simple'
-  );
+  const [useSimpleEditor, setUseSimpleEditor] = useState(() => {
+    const saved = localStorage.getItem('codevault_editor_mode');
+    if (saved === 'simple') return true;
+    if (saved === 'rich') return false;
+    return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  });
 
   const [formData, setFormData] = useState({
     title: '', subject: 'Java', topic: '', aim: '', code: '', output: '',
@@ -85,7 +88,7 @@ export default function SessionForm() {
 
   const handleSave = useCallback(async (e) => {
     if (e) e.preventDefault();
-    if (!user) return;
+    if (!user || saving) return;
     setSaving(true);
     setSaveStatus('Saving...');
 
@@ -115,7 +118,7 @@ export default function SessionForm() {
       setSaving(false);
       setTimeout(() => setSaveStatus(''), 3000);
     }
-  }, [formData, id, user]);
+  }, [formData, id, user, saving]);
 
   const handleToggleShare = async () => {
     const nextShared = !formData.is_shared;

@@ -104,7 +104,7 @@ export default function ArchivePage() {
                   </button>
                   <button
                     onClick={() => handlePermanentDelete(session.id)}
-                    className="p-2 text-dark-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                    className="p-2 text-dark-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100 cursor-pointer"
                     title="Delete permanently"
                   >
                     <Trash2 size={16} />

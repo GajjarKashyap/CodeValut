@@ -1,3 +1,4 @@
+# Trigger rebuild to verify transient Gradle build errors
 name: Build Android APK
 
 on:

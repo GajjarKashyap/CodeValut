@@ -3,12 +3,65 @@ import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Home, Coffee, Database, Search, Star, LogOut, PlusSquare, ShieldCheck, Zap, Archive, Settings, MessageCircle } from 'lucide-react';
+import { Home, Coffee, Database, Search, Star, LogOut, PlusSquare, ShieldCheck, Zap, Archive, Settings, MessageCircle, Bell, BellRing, X } from 'lucide-react';
 
 export default function Layout() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+
+  const [profile, setProfile] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const fetchProfileAndNotifications = async () => {
+    if (!user) return;
+    
+    // Fetch profile
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('avatar_url')
+      .eq('id', user.id)
+      .single();
+      
+    if (profileData) setProfile(profileData);
+    
+    // Fetch notifications
+    const { data: notifs } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+      
+    if (notifs) setNotifications(notifs);
+  };
+
+  useEffect(() => {
+    fetchProfileAndNotifications();
+    
+    window.addEventListener('profile-updated', fetchProfileAndNotifications);
+    
+    if (user) {
+      const channel = supabase.channel('notifications_channel')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, (payload) => {
+          setNotifications(prev => [payload.new, ...prev]);
+        })
+        .subscribe();
+        
+      return () => {
+        window.removeEventListener('profile-updated', fetchProfileAndNotifications);
+        supabase.removeChannel(channel);
+      }
+    }
+  }, [user]);
+
+  const markAsRead = async (id) => {
+    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+  };
+
 
   useEffect(() => {
     if (user) {
@@ -98,10 +151,16 @@ export default function Layout() {
 
         {/* User Info */}
         <div className="mt-4 pt-4 border-t border-dark-border space-y-3">
+          
           <div className="px-3 flex items-center space-x-3">
-            <div className="w-8 h-8 bg-primary/20 border border-primary/30 rounded-full flex items-center justify-center text-sm font-bold text-primary font-mono shrink-0">
-              {userInitial}
+            <div className="w-8 h-8 bg-dark-bg border-2 border-dark-border rounded-full flex items-center justify-center text-sm font-bold text-dark-muted font-mono shrink-0 overflow-hidden">
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="User" className="w-full h-full object-cover" />
+              ) : (
+                userInitial
+              )}
             </div>
+
             <div className="min-w-0">
               <p className="text-xs text-white truncate font-sans">{shortEmail}</p>
               {isAdmin && (

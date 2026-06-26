@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Coffee, Database, Star, FileText, X, TrendingUp, Users, ShieldCheck, Activity, RefreshCw } from 'lucide-react';
+import { Coffee, Database, Star, FileText, X, TrendingUp, Users, ShieldCheck, Activity, RefreshCw, Bell, Trash2, Megaphone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,6 +16,84 @@ export default function Dashboard() {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   const isAdmin = user?.email?.trim()?.toLowerCase() === 'admin@admin.com';
+
+  
+  const [announcement, setAnnouncement] = useState('');
+  const [sendingAnnouncement, setSendingAnnouncement] = useState(false);
+  const [profiles, setProfiles] = useState({});
+  const [avatarToDelete, setAvatarToDelete] = useState(null);
+
+  useEffect(() => {
+    if (isAdmin && adminUsersActivity.length > 0) {
+      // fetch profiles for the users in the table
+      const userIds = adminUsersActivity.map(a => a.user_id);
+      supabase.from('profiles').select('id, avatar_url').in('id', userIds).then(({ data }) => {
+        if (data) {
+          const map = {};
+          data.forEach(p => map[p.id] = p.avatar_url);
+          setProfiles(map);
+        }
+      });
+    }
+  }, [isAdmin, adminUsersActivity]);
+
+  const sendGlobalAnnouncement = async () => {
+    if (!announcement.trim()) return;
+    setSendingAnnouncement(true);
+    
+    try {
+      const { data: allUsers } = await supabase.from('user_activity').select('user_id');
+      if (allUsers) {
+        const notifications = allUsers.map(u => ({
+          user_id: u.user_id,
+          type: 'announcement',
+          message: announcement,
+          link: '/dashboard',
+          is_read: false
+        }));
+        
+        await supabase.from('notifications').insert(notifications);
+        alert('Announcement sent to ' + notifications.length + ' users!');
+        setAnnouncement('');
+      }
+    } catch (e) {
+      alert('Failed: ' + e.message);
+    } finally {
+      setSendingAnnouncement(false);
+    }
+  };
+
+  const deleteAvatar = async () => {
+    if (!avatarToDelete) return;
+    try {
+      // Get the current avatar URL
+      const avatarUrl = profiles[avatarToDelete];
+      if (avatarUrl) {
+        const fileName = avatarUrl.split('/').pop();
+        if (fileName) {
+          await supabase.storage.from('avatars').remove([fileName]);
+        }
+      }
+      
+      // Remove from profile
+      await supabase.from('profiles').update({ avatar_url: null }).eq('id', avatarToDelete);
+      
+      // Log it
+      await supabase.from('audit_logs').insert({
+        admin_id: user.id,
+        action: 'deleted_avatar',
+        target_user_id: avatarToDelete,
+        details: 'Admin deleted avatar for breaking rules'
+      });
+      
+      // Update local state
+      setProfiles(prev => ({ ...prev, [avatarToDelete]: null }));
+      setAvatarToDelete(null);
+    } catch (e) {
+      alert('Failed: ' + e.message);
+    }
+  };
+
 
   const fetchDashboardData = async () => {
       try {
@@ -200,6 +278,54 @@ export default function Dashboard() {
         <StatCard title="Favorites" count={stats.favorites} icon={<Star size={22} className="text-yellow-400" />} color="bg-yellow-500/10" />
       </div>
 
+
+      {/* Admin Announcement Tool */}
+      {isAdmin && (
+        <div className="bg-dark-surface rounded-xl border border-primary/20 overflow-hidden mt-6 p-5 relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl"></div>
+          <h3 className="text-base font-bold text-white font-sans flex items-center gap-2 mb-3">
+            <Megaphone size={18} className="text-primary" />
+            Global Announcement
+          </h3>
+          <div className="flex gap-3">
+            <input 
+              type="text" 
+              value={announcement}
+              onChange={e => setAnnouncement(e.target.value)}
+              placeholder="Broadcast a message to all users..."
+              className="flex-1 bg-dark-bg border border-dark-border focus:border-primary/50 text-dark-text rounded-lg px-4 py-2 focus:outline-none transition-all font-sans text-sm"
+            />
+            <button 
+              onClick={sendGlobalAnnouncement}
+              disabled={sendingAnnouncement || !announcement.trim()}
+              className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-dark-bg px-6 py-2 rounded-lg text-sm font-bold transition-all active:scale-95 shrink-0"
+            >
+              {sendingAnnouncement ? 'Sending...' : 'Send Broadcast'}
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Avatar Delete Modal */}
+      {avatarToDelete && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-dark-surface border border-red-500/30 max-w-sm w-full rounded-2xl shadow-2xl p-6 text-center">
+            <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/20">
+              <Trash2 size={24} />
+            </div>
+            <h3 className="text-white font-bold text-lg mb-2">Remove Avatar?</h3>
+            <p className="text-dark-muted text-sm mb-6">
+              Are you sure you want to delete this user's custom avatar? This action cannot be undone and will be logged.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setAvatarToDelete(null)} className="flex-1 border border-dark-border text-white px-4 py-2 rounded-lg hover:bg-dark-border/40 transition-colors">Cancel</button>
+              <button onClick={deleteAvatar} className="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors font-bold">Yes, Remove</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
       {/* Admin Active Users Dashboard */}
       {isAdmin && (
         <div className="bg-dark-surface rounded-xl border border-dark-border overflow-hidden mt-6">
@@ -227,6 +353,7 @@ export default function Dashboard() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="text-dark-muted text-[11px] uppercase tracking-widest font-mono border-b border-dark-border/40">
+                  <th className="py-2 px-4 font-medium">Avatar</th>
                   <th className="py-2 px-4 font-medium">Status</th>
                   <th className="py-2 px-4 font-medium">User Email</th>
                   <th className="py-2 px-4 font-medium">Last Login</th>
@@ -240,6 +367,24 @@ export default function Dashboard() {
                   
                   return (
                     <tr key={activity.user_id} className="hover:bg-dark-bg/40 transition-colors">
+                      
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full border border-dark-border bg-dark-bg flex items-center justify-center overflow-hidden shrink-0">
+                            {profiles[activity.user_id] ? (
+                              <img src={profiles[activity.user_id]} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-xs font-bold text-dark-muted font-mono">{activity.email.charAt(0).toUpperCase()}</span>
+                            )}
+                          </div>
+                          {profiles[activity.user_id] && (
+                            <button onClick={() => setAvatarToDelete(activity.user_id)} className="text-dark-muted hover:text-red-400 p-1 transition-colors" title="Remove Avatar">
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+
                       <td className="py-3 px-4">
                         <span className={`flex items-center gap-1.5 text-xs font-mono font-bold px-2 py-1 rounded-md w-max ${isOnline ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-dark-bg text-dark-muted border border-dark-border'}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-400 animate-pulse' : 'bg-dark-muted'}`}></span>

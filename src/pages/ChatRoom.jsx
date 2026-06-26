@@ -13,6 +13,7 @@ export default function ChatRoom() {
   const [group, setGroup] = useState(null);
   const [currentUserRole, setCurrentUserRole] = useState('member');
   const [messages, setMessages] = useState([]);
+  const [profiles, setProfiles] = useState({});
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [replyingTo, setReplyingTo] = useState(null);
@@ -183,7 +184,25 @@ export default function ChatRoom() {
     };
     fetchUserProfiles();
 
-    const fetchMessages = async () => {
+    
+  const fetchProfiles = async (userIds) => {
+    if (userIds.length === 0) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, avatar_url, display_name, username')
+      .in('id', userIds);
+      
+    if (data) {
+      setProfiles(prev => {
+        const next = { ...prev };
+        data.forEach(p => next[p.id] = p);
+        return next;
+      });
+    }
+  };
+
+
+  const fetchMessages = async () => {
     try {
       const { data, error } = await supabase
         .from('group_messages')
@@ -538,7 +557,7 @@ export default function ChatRoom() {
             >
               {!group?.is_direct_message && !isMine && (
                 <span className="text-[10px] font-mono text-dark-muted ml-1 mb-1">
-                  User {msg.user_id.substring(0, 5)}
+                  {profiles[msg.user_id]?.display_name || profiles[msg.user_id]?.username || `User ${msg.user_id.substring(0, 5)}`}
                 </span>
               )}
               <div 

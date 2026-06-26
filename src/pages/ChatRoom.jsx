@@ -143,7 +143,7 @@ export default function ChatRoom() {
         setCurrentUserRole(memberData.role);
       } else {
         // App Admins also have implicit admin rights
-        const isAdmin = user.email === '2072@admin.com' || user.email === 'admin@codevault.edu';
+        const isAdmin = user.email === 'admin@admin.com';
         if (isAdmin) setCurrentUserRole('admin');
       }
     } catch (err) {

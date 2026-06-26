@@ -21,7 +21,7 @@ export default function Layout() {
       });
     }
   }, [location.pathname, user]);
-  const isAdmin = user?.email?.toLowerCase() === '2072@admin.com' || user?.email?.toLowerCase() === 'admin@codevault.edu';
+  const isAdmin = user?.email?.toLowerCase() === 'admin@admin.com';
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

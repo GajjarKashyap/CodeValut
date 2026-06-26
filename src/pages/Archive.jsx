@@ -11,7 +11,7 @@ export default function ArchivePage() {
   const [loading, setLoading] = useState(true);
   const [restoring, setRestoring] = useState(null);
 
-  const isAdmin = user?.email?.toLowerCase() === '2072@admin.com' || user?.email?.toLowerCase() === 'admin@codevault.edu';
+  const isAdmin = user?.email?.toLowerCase() === 'admin@admin.com';
 
   useEffect(() => {
     if (user) {

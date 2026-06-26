@@ -14,7 +14,7 @@ export default function Dashboard() {
   const [selectedStudentFilter, setSelectedStudentFilter] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const isAdmin = user?.email?.toLowerCase() === '2072@admin.com' || user?.email?.toLowerCase() === 'admin@codevault.edu';
+  const isAdmin = user?.email?.toLowerCase() === 'admin@admin.com';
 
   const fetchDashboardData = async () => {
       try {

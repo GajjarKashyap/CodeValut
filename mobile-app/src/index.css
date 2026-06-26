@@ -97,3 +97,27 @@ input:focus, textarea:focus, select:focus {
     linear-gradient(to right, rgba(200, 171, 126, 0.015) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(200, 171, 126, 0.015) 1px, transparent 1px);
 }
+
+
+/* Global custom color-mix utilities for opacity */
+.theme-bg-primary-5 {
+  background-color: color-mix(in srgb, var(--color-primary) 5%, transparent) !important;
+}
+.theme-bg-primary-10 {
+  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
+}
+.theme-bg-primary-15 {
+  background-color: color-mix(in srgb, var(--color-primary) 15%, transparent) !important;
+}
+.theme-border-primary-20 {
+  border-color: color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
+}
+.theme-border-primary-25 {
+  border-color: color-mix(in srgb, var(--color-primary) 25%, transparent) !important;
+}
+.theme-border-primary-40 {
+  border-color: color-mix(in srgb, var(--color-primary) 40%, transparent) !important;
+}
+.theme-border-primary-45 {
+  border-color: color-mix(in srgb, var(--color-primary) 45%, transparent) !important;
+}

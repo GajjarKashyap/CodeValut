@@ -55,7 +55,7 @@ export default function ArchivePage() {
     <div className="max-w-5xl mx-auto pb-10">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2 font-serif">
+          <h2 className="text-2xl font-bold text-dark-text flex items-center gap-2 font-serif">
             <Archive size={24} className="text-dark-muted" /> Archive
           </h2>
           <p className="text-dark-muted text-sm font-sans mt-0.5">{sessions.length} archived session{sessions.length !== 1 ? 's' : ''}</p>
@@ -82,7 +82,7 @@ export default function ArchivePage() {
                     {session.subject === 'Java' ? <Coffee size={20} /> : <Database size={20} />}
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-white/80 font-semibold font-sans truncate">{session.title || 'Untitled Session'}</h3>
+                    <h3 className="text-dark-text opacity-80 font-semibold font-sans truncate">{session.title || 'Untitled Session'}</h3>
                     <div className="flex items-center gap-2 text-xs text-dark-muted mt-1 font-sans">
                       <span>{session.subject}</span>
                       {session.topic && <span>• {session.topic}</span>}

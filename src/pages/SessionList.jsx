@@ -78,7 +78,7 @@ export default function SessionList({ filter }) {
     <div className="max-w-5xl mx-auto pb-10">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2 font-serif">
+          <h2 className="text-2xl font-bold text-dark-text flex items-center gap-2 font-serif">
             {filter === 'favorites' && <Star className="text-yellow-400 fill-current" size={24} />}
             {subject === 'java' && <Coffee className="text-orange-400" size={24} />}
             {subject === 'mongodb' && <Database className="text-green-400" size={24} />}
@@ -109,7 +109,7 @@ export default function SessionList({ filter }) {
                     {session.subject === 'Java' ? <Coffee size={22} /> : <Database size={22} />}
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-white font-semibold font-sans flex items-center gap-2 truncate">
+                    <h3 className="text-dark-text font-semibold font-sans flex items-center gap-2 truncate">
                       {session.title || 'Untitled Session'}
                       {session.is_favorite && <Star size={14} className="text-yellow-400 fill-current shrink-0" />}
                     </h3>

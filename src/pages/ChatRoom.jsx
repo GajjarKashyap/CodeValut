@@ -545,7 +545,7 @@ export default function ChatRoom() {
         <div className="flex items-center gap-3">
           <button 
             onClick={() => navigate('/chat')}
-            className="p-2 text-dark-muted hover:text-white rounded-full hover:bg-dark-bg transition-colors"
+            className="p-2 text-dark-muted hover:text-primary rounded-full hover:bg-dark-bg transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
@@ -554,7 +554,7 @@ export default function ChatRoom() {
               {group?.name?.charAt(0).toUpperCase() || 'G'}
             </div>
             <div className="min-w-0">
-              <h2 className="text-white font-bold font-sans tracking-wide leading-tight truncate">{group?.name || 'Chat'}</h2>
+              <h2 className="text-dark-text font-bold font-sans tracking-wide leading-tight truncate">{group?.name || 'Chat'}</h2>
               <p className="text-[10px] text-primary/70 font-mono tracking-widest uppercase">
                 {group?.is_global ? 'Global Channel' : group?.is_direct_message ? 'Direct Message' : 'Group'}
                 {group?.admin_only && ' • Admin Only'}
@@ -566,7 +566,7 @@ export default function ChatRoom() {
           {currentUserRole === 'admin' && !group?.is_direct_message && (
             <button 
               onClick={handleOpenManageModal}
-              className="p-2 text-dark-muted hover:text-white rounded-full hover:bg-dark-bg transition-colors shrink-0"
+              className="p-2 text-dark-muted hover:text-primary rounded-full hover:bg-dark-bg transition-colors shrink-0"
               title="Manage Members"
             >
               <Users size={18} />
@@ -578,7 +578,7 @@ export default function ChatRoom() {
                 setEditGroupName(group?.name || '');
                 setIsSettingsModalOpen(true);
               }}
-              className="p-2 text-dark-muted hover:text-white rounded-full hover:bg-dark-bg transition-colors shrink-0"
+              className="p-2 text-dark-muted hover:text-primary rounded-full hover:bg-dark-bg transition-colors shrink-0"
               title="Group Settings"
             >
               <MoreVertical size={20} />
@@ -661,10 +661,10 @@ export default function ChatRoom() {
                     <div className="p-2.5 border-b border-dark-border/50 flex items-center justify-between bg-dark-surface/80">
                       <div className="flex items-center gap-2 min-w-0">
                         {msg.sessions.subject === 'Java' ? <Coffee size={14} className="text-orange-400 shrink-0" /> : <Database size={14} className="text-green-400 shrink-0" />}
-                        <h4 className="font-bold text-white text-xs truncate leading-tight">{msg.sessions.title}</h4>
+                        <h4 className="font-bold text-dark-text text-xs truncate leading-tight">{msg.sessions.title}</h4>
                       </div>
                       {isMine && (
-                        <button onClick={() => handleOpenEditSnippet(msg.sessions)} className="text-dark-muted hover:text-white p-1 rounded hover:bg-dark-bg cursor-pointer shrink-0" title="Edit Snippet">
+                        <button onClick={() => handleOpenEditSnippet(msg.sessions)} className="text-dark-muted hover:text-primary p-1 rounded hover:bg-dark-bg cursor-pointer shrink-0" title="Edit Snippet">
                           <Edit3 size={14} />
                         </button>
                       )}
@@ -682,7 +682,7 @@ export default function ChatRoom() {
                           <div className="flex items-center gap-1.5 text-[9px] text-primary font-mono uppercase tracking-widest">
                             <Code size={10} /> Code Snippet
                           </div>
-                          <button onClick={() => navigator.clipboard.writeText(msg.sessions.code)} className="text-dark-muted hover:text-white p-0.5 rounded cursor-pointer" title="Copy Code">
+                          <button onClick={() => navigator.clipboard.writeText(msg.sessions.code)} className="text-dark-muted hover:text-primary p-0.5 rounded cursor-pointer" title="Copy Code">
                             <Copy size={12} />
                           </button>
                         </div>
@@ -698,7 +698,7 @@ export default function ChatRoom() {
                           <div className="flex items-center gap-1.5 text-[9px] text-green-400 font-mono uppercase tracking-widest">
                             <Terminal size={10} /> Terminal Output
                           </div>
-                          <button onClick={() => navigator.clipboard.writeText(msg.sessions.output)} className="text-dark-muted hover:text-white p-0.5 rounded cursor-pointer" title="Copy Output">
+                          <button onClick={() => navigator.clipboard.writeText(msg.sessions.output)} className="text-dark-muted hover:text-primary p-0.5 rounded cursor-pointer" title="Copy Output">
                             <Copy size={12} />
                           </button>
                         </div>
@@ -731,7 +731,7 @@ export default function ChatRoom() {
                           className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold border cursor-pointer transition-colors shadow-sm ${
                             hasReacted 
                               ? 'bg-primary/20 border-primary text-primary' 
-                              : 'bg-dark-surface border-dark-border text-white hover:border-primary/50'
+                              : 'bg-dark-surface border-dark-border text-dark-text hover:border-primary/50'
                           }`}
                         >
                           <span>{emoji}</span>
@@ -785,7 +785,7 @@ export default function ChatRoom() {
                     {replyingTo.session_id ? 'Code Snippet' : replyingTo.content}
                   </div>
                 </div>
-                <button type="button" onClick={() => setReplyingTo(null)} className="p-1 text-dark-muted hover:text-white cursor-pointer rounded-full hover:bg-dark-surface">
+                <button type="button" onClick={() => setReplyingTo(null)} className="p-1 text-dark-muted hover:text-primary cursor-pointer rounded-full hover:bg-dark-surface">
                   <X size={16} />
                 </button>
               </div>
@@ -818,7 +818,7 @@ export default function ChatRoom() {
                   }
                 }}
                 placeholder="Type a message..."
-                className="w-full bg-transparent text-white px-4 py-3 max-h-32 focus:outline-none resize-none font-sans text-sm"
+                className="w-full bg-transparent text-dark-text px-4 py-3 max-h-32 focus:outline-none resize-none font-sans text-sm"
                 rows="1"
               />
             </div>
@@ -840,13 +840,13 @@ export default function ChatRoom() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-dark-bg border border-dark-border rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
             <div className="p-4 border-b border-dark-border flex items-center justify-between bg-dark-surface">
-              <h3 className="text-white font-bold font-sans flex items-center gap-2">
+              <h3 className="text-dark-text font-bold font-sans flex items-center gap-2">
                 <Users size={16} className="text-primary" />
                 Manage Group Members
               </h3>
               <button 
                 onClick={() => setIsManageModalOpen(false)}
-                className="text-dark-muted hover:text-white p-1 cursor-pointer"
+                className="text-dark-muted hover:text-primary p-1 cursor-pointer"
               >
                 <X size={20} />
               </button>
@@ -860,7 +860,7 @@ export default function ChatRoom() {
                   placeholder="Search user emails to add..."
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
-                  className="w-full bg-dark-surface border border-dark-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:border-primary focus:outline-none"
+                  className="w-full bg-dark-surface border border-dark-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-dark-text focus:border-primary focus:outline-none"
                 />
               </div>
             </div>
@@ -872,7 +872,7 @@ export default function ChatRoom() {
                   return (
                     <li key={u.user_id} className="p-4 flex items-center justify-between hover:bg-dark-surface/50 transition-colors">
                       <div className="min-w-0">
-                        <p className="text-white text-sm font-medium truncate">{u.email}</p>
+                        <p className="text-dark-text text-sm font-medium truncate">{u.email}</p>
                         <p className="text-xs text-dark-muted font-mono mt-0.5">
                           Last seen: {formatDistanceToNow(new Date(u.last_seen_at), { addSuffix: true })}
                         </p>
@@ -909,13 +909,13 @@ export default function ChatRoom() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
           <div className="bg-dark-bg border border-dark-border rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col">
             <div className="p-4 border-b border-dark-border flex items-center justify-between bg-dark-surface">
-              <h3 className="text-white font-bold font-sans flex items-center gap-2">
+              <h3 className="text-dark-text font-bold font-sans flex items-center gap-2">
                 <Edit2 size={16} className="text-primary" />
                 Group Settings
               </h3>
               <button 
                 onClick={() => setIsSettingsModalOpen(false)}
-                className="text-dark-muted hover:text-white p-1 cursor-pointer"
+                className="text-dark-muted hover:text-primary p-1 cursor-pointer"
               >
                 <X size={20} />
               </button>
@@ -928,7 +928,7 @@ export default function ChatRoom() {
                   type="text"
                   value={editGroupName}
                   onChange={(e) => setEditGroupName(e.target.value)}
-                  className="w-full bg-dark-surface border border-dark-border rounded-xl px-4 py-2.5 text-sm text-white focus:border-primary focus:outline-none transition-colors"
+                  className="w-full bg-dark-surface border border-dark-border rounded-xl px-4 py-2.5 text-sm text-dark-text focus:border-primary focus:outline-none transition-colors"
                   placeholder="New group name..."
                 />
               </div>
@@ -959,13 +959,13 @@ export default function ChatRoom() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
           <div className="bg-dark-bg border border-dark-border rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
             <div className="p-4 border-b border-dark-border flex items-center justify-between bg-dark-surface">
-              <h3 className="text-white font-bold font-sans flex items-center gap-2">
+              <h3 className="text-dark-text font-bold font-sans flex items-center gap-2">
                 <Code size={18} className="text-primary" />
                 {editingSessionId ? 'Edit Snippet' : 'Quick Snippet'}
               </h3>
               <button 
                 onClick={() => setIsSnippetModalOpen(false)}
-                className="text-dark-muted hover:text-white p-1 cursor-pointer"
+                className="text-dark-muted hover:text-primary p-1 cursor-pointer"
               >
                 <X size={20} />
               </button>
@@ -979,7 +979,7 @@ export default function ChatRoom() {
                     type="text"
                     value={snippetData.title}
                     onChange={e => setSnippetData(d => ({ ...d, title: e.target.value }))}
-                    className="w-full bg-dark-surface border border-dark-border rounded-xl px-4 py-2.5 text-sm text-white focus:border-primary focus:outline-none"
+                    className="w-full bg-dark-surface border border-dark-border rounded-xl px-4 py-2.5 text-sm text-dark-text focus:border-primary focus:outline-none"
                     placeholder="e.g. My Algorithm"
                   />
                 </div>
@@ -988,7 +988,7 @@ export default function ChatRoom() {
                   <select
                     value={snippetData.subject}
                     onChange={e => setSnippetData(d => ({ ...d, subject: e.target.value }))}
-                    className="w-full bg-dark-surface border border-dark-border rounded-xl px-4 py-2.5 text-sm text-white focus:border-primary focus:outline-none"
+                    className="w-full bg-dark-surface border border-dark-border rounded-xl px-4 py-2.5 text-sm text-dark-text focus:border-primary focus:outline-none"
                   >
                     <option value="Java">Java</option>
                     <option value="MongoDB">MongoDB</option>
@@ -1001,7 +1001,7 @@ export default function ChatRoom() {
                 <textarea
                   value={snippetData.aim}
                   onChange={e => setSnippetData(d => ({ ...d, aim: e.target.value }))}
-                  className="w-full bg-dark-surface border border-dark-border rounded-xl px-4 py-2.5 text-sm text-white focus:border-primary focus:outline-none min-h-[60px]"
+                  className="w-full bg-dark-surface border border-dark-border rounded-xl px-4 py-2.5 text-sm text-dark-text focus:border-primary focus:outline-none min-h-[60px]"
                   placeholder="Explain what this code does..."
                 />
               </div>
@@ -1031,7 +1031,7 @@ export default function ChatRoom() {
                 <button
                   type="button"
                   onClick={() => setIsSnippetModalOpen(false)}
-                  className="flex-1 py-2.5 bg-dark-bg border border-dark-border text-white font-bold rounded-xl hover:bg-dark-surface transition-colors text-sm"
+                  className="flex-1 py-2.5 bg-dark-bg border border-dark-border text-dark-text font-bold rounded-xl hover:bg-dark-surface transition-colors text-sm"
                 >
                   Cancel
                 </button>
@@ -1054,10 +1054,10 @@ export default function ChatRoom() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
           <div className="bg-dark-bg border border-dark-border rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
             <div className="p-4 border-b border-dark-border flex items-center justify-between bg-dark-surface">
-              <h3 className="text-white font-bold font-sans">Share a Session</h3>
+              <h3 className="text-dark-text font-bold font-sans">Share a Session</h3>
               <button 
                 onClick={() => setIsSessionModalOpen(false)}
-                className="text-dark-muted hover:text-white p-1 cursor-pointer"
+                className="text-dark-muted hover:text-primary p-1 cursor-pointer"
               >
                 <X size={20} />
               </button>
@@ -1071,7 +1071,7 @@ export default function ChatRoom() {
                   placeholder="Search your sessions..."
                   value={sessionSearch}
                   onChange={(e) => setSessionSearch(e.target.value)}
-                  className="w-full bg-dark-surface border border-dark-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:border-primary focus:outline-none"
+                  className="w-full bg-dark-surface border border-dark-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-dark-text focus:border-primary focus:outline-none"
                 />
               </div>
             </div>

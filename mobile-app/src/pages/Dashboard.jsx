@@ -188,7 +188,7 @@ export default function Dashboard() {
     <div className={`bg-dark-surface p-5 rounded-xl border ${borderColor || 'border-dark-border'} hover:border-primary/30 transition-all duration-200 flex items-center justify-between group cursor-default`}>
       <div>
         <p className="text-dark-muted text-xs font-medium mb-2 font-sans uppercase tracking-wider">{title}</p>
-        <h3 className="text-3xl font-bold text-white group-hover:text-primary transition-colors font-mono">{count}</h3>
+        <h3 className="text-3xl font-bold text-dark-text group-hover:text-primary transition-colors font-mono">{count}</h3>
       </div>
       <div className={`p-3 rounded-xl ${color} group-hover:scale-110 transition-transform duration-200`}>
         {icon}
@@ -208,7 +208,7 @@ export default function Dashboard() {
                 <ShieldCheck size={20} />
               </div>
               <div>
-                <h3 className="text-white font-bold font-serif text-lg">CodeVault Updates!</h3>
+                <h3 className="text-dark-text font-bold font-serif text-lg">CodeVault Updates!</h3>
                 <p className="text-primary text-xs font-mono">Fresh Start</p>
               </div>
             </div>
@@ -451,7 +451,7 @@ export default function Dashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-dark-bg/60 text-dark-muted text-[11px] uppercase tracking-widest font-mono">
+                  <tr className="bg-dark-bg text-dark-muted text-[11px] uppercase tracking-widest font-mono">
                     <th className="py-3 px-5 font-medium">Student Email</th>
                     <th className="py-3 px-4 text-center font-medium">Java</th>
                     <th className="py-3 px-4 text-center font-medium">MongoDB</th>

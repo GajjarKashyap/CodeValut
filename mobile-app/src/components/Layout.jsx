@@ -1,4 +1,5 @@
 ﻿import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
@@ -20,6 +21,17 @@ export default function Layout() {
     if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
       Notification.requestPermission();
     }
+    const requestCapacitorPermission = async () => {
+      try {
+        const permStatus = await LocalNotifications.checkPermissions();
+        if (permStatus.display !== 'granted') {
+          await LocalNotifications.requestPermissions();
+        }
+      } catch (err) {
+        console.warn('Capacitor LocalNotifications check/request failed:', err);
+      }
+    };
+    requestCapacitorPermission();
   }, []);
 
 
@@ -61,6 +73,23 @@ export default function Layout() {
               icon: '/CodeValut/favicon.svg'
             });
           }
+          const triggerLocalNotification = async () => {
+            try {
+              await LocalNotifications.schedule({
+                notifications: [
+                  {
+                    title: 'CodeVault Alert',
+                    body: payload.new.message,
+                    id: Math.floor(Math.random() * 1000000),
+                    schedule: { at: new Date(Date.now() + 50) }
+                  }
+                ]
+              });
+            } catch (err) {
+              console.warn('Capacitor schedule local notification failed:', err);
+            }
+          };
+          triggerLocalNotification();
         })
         .subscribe();
         
@@ -153,7 +182,7 @@ export default function Layout() {
                 `flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-150 ${
                   isActive
                     ? 'bg-primary/15 text-primary font-semibold border border-primary/20'
-                    : 'text-dark-muted hover:text-white hover:bg-dark-border/40'
+                    : 'text-dark-muted hover:text-primary hover:theme-bg-primary-10'
                 }`
               }
             >
@@ -198,8 +227,10 @@ export default function Layout() {
       <main className="flex-1 flex flex-col pb-16 md:pb-0 h-screen overflow-hidden">
         {/* Top Bar */}
         <header className="h-14 flex items-center justify-between px-5 border-b border-dark-border bg-dark-surface/80 backdrop-blur-md shrink-0">
-          <div className="font-medium font-mono text-xs text-dark-muted tracking-wide">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+          <div className="font-medium font-mono text-xs text-dark-muted tracking-wide flex items-center gap-3">
+            <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
+            <span className="text-primary/40 hidden sm:inline">|</span>
+            <span className="text-primary font-sans text-[10px] font-semibold bg-primary/10 border border-primary/20 rounded px-2 py-0.5 whitespace-nowrap">Developed by Kashyap Gajjar</span>
           </div>
           <div className="flex items-center space-x-2">
             <button

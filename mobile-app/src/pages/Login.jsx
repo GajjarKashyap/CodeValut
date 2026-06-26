@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
-import { Coffee, Mail, Lock, Terminal, Check, Copy } from 'lucide-react';
+import { Coffee, Mail, Lock, Terminal, Check, Copy, Fingerprint, LogIn } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -13,6 +13,10 @@ export default function Login() {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [copiedSection, setCopiedSection] = useState('');
 
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('codevault_theme') || 'original';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
 
   const handleRequestAccess = () => {
     setShowRequestModal(true);
@@ -39,7 +43,49 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-bg flex items-center justify-center p-4 relative overflow-hidden bg-grid-pattern">
+    <div className="min-h-screen bg-dark-bg text-dark-text flex items-center justify-center p-4 relative overflow-hidden bg-grid-pattern">
+      <style>{`
+        @keyframes scanline {
+          0% { bottom: 100%; }
+          100% { bottom: -100px; }
+        }
+        .scanline {
+          width: 100%;
+          height: 100px;
+          z-index: 5;
+          background: linear-gradient(0deg, rgba(200, 171, 126, 0) 0%, rgba(200, 171, 126, 0.03) 50%, rgba(200, 171, 126, 0) 100%);
+          opacity: 0.15;
+          position: absolute;
+          bottom: 100%;
+          animation: scanline 8s linear infinite;
+          pointer-events: none;
+        }
+        .theme-bg-primary-5 {
+          background-color: color-mix(in srgb, var(--color-primary) 5%, transparent);
+        }
+        .theme-bg-primary-10 {
+          background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
+        }
+        .theme-bg-primary-15 {
+          background-color: color-mix(in srgb, var(--color-primary) 15%, transparent);
+        }
+        .theme-border-primary-20 {
+          border-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
+        }
+        .theme-border-primary-25 {
+          border-color: color-mix(in srgb, var(--color-primary) 25%, transparent);
+        }
+        .theme-border-primary-40 {
+          border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
+        }
+        .theme-border-primary-45 {
+          border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+        }
+      `}</style>
+
+      {/* Scanline decoration */}
+      <div className="scanline" />
+
       {/* Subtle Corner Ambient Glows */}
       <div className="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
@@ -47,66 +93,82 @@ export default function Login() {
       {/* Centered Golden Backlight Glow behind the login card */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] md:w-[450px] md:h-[450px] rounded-full bg-primary/10 blur-[100px] pointer-events-none" />
 
-      <div className="max-w-md w-full z-10">
-        <div className="text-center mb-8">
-          <div className="bg-primary/10 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-xl shadow-primary/5 animate-pulse">
-            <Coffee size={40} className="text-primary" />
+      <div className="max-w-md w-full z-10 flex flex-col items-center">
+        {/* Compact Header Section */}
+        <div className="text-center mb-4 flex flex-col items-center">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="theme-bg-primary-10 w-10 h-10 rounded-xl flex items-center justify-center border theme-border-primary-20 shadow-lg shadow-primary/5 animate-pulse">
+              <Coffee size={22} className="text-primary" />
+            </div>
+            <h1 className="text-3xl font-bold font-serif text-primary tracking-tight">CodeVault</h1>
           </div>
-          <h1 className="text-4xl font-bold font-serif text-white mb-2 tracking-tight">CodeVault</h1>
-          <p className="text-dark-muted font-sans text-sm">Secure practical notebook for college labs</p>
+          <div className="px-3 py-1 rounded-full border theme-border-primary-20 theme-bg-primary-5 shadow-sm">
+            <span className="font-mono text-[9px] uppercase tracking-widest text-primary font-semibold">
+              Developed by Kashyap Gajjar
+            </span>
+          </div>
         </div>
 
-        {/* Glassmorphic Terminal Card */}
-        <div className="bg-dark-surface/60 backdrop-blur-md p-8 rounded-2xl border border-primary/20 shadow-2xl space-y-6">
+        {/* Glassmorphic Terminal Card (More Compact) */}
+        <div className="bg-dark-surface backdrop-blur-md p-6 rounded-2xl border border-primary/20 shadow-2xl space-y-4 relative overflow-hidden group transition-all duration-300 hover:border-primary/30 w-full">
+          {/* Decorative Corner Accents */}
+          <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary/30 rounded-tl-2xl pointer-events-none"></div>
+          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary/30 rounded-br-2xl pointer-events-none"></div>
+
           {/* Terminal Window Header Decoration */}
-          <div className="flex items-center justify-between border-b border-dark-border pb-4 -mt-2">
-            <div className="flex items-center space-x-2 text-xs font-mono text-dark-muted">
-              <Terminal size={14} className="text-primary" />
+          <div className="flex items-center justify-between border-b border-dark-border pb-3 -mt-1">
+            <div className="flex items-center space-x-2 text-[11px] font-mono text-dark-muted">
+              <Terminal size={12} className="text-primary" />
               <span>ssh student@codevault</span>
             </div>
             <div className="flex gap-1.5">
-              <div className="size-2 rounded-full bg-red-500/30"></div>
-              <div className="size-2 rounded-full bg-yellow-500/30"></div>
-              <div className="size-2 rounded-full bg-green-500/30"></div>
+              <div className="size-1.5 rounded-full bg-red-500/30"></div>
+              <div className="size-1.5 rounded-full bg-yellow-500/30"></div>
+              <div className="size-1.5 rounded-full bg-green-500/30"></div>
             </div>
           </div>
 
+          <div className="text-left mb-3">
+            <h2 className="text-xl font-bold font-serif text-dark-text mb-0.5">Secure Access</h2>
+            <p className="text-dark-muted font-mono text-[10px]">Enter credentials to decrypt session.</p>
+          </div>
+
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl text-sm font-sans">
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs font-sans text-left">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-4 text-left">
             <div>
-              <label className="block text-sm font-medium text-dark-muted mb-2 font-sans">Email Address</label>
+              <label className="block text-[9px] font-semibold font-mono uppercase tracking-widest text-primary mb-1.5">Access Identity</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-muted">
-                  <Mail size={18} />
+                  <Fingerprint size={16} />
                 </span>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-dark-bg border border-dark-border focus:border-primary/50 text-dark-text rounded-xl pl-12 pr-4 py-3 focus:outline-none transition-all font-sans placeholder-dark-muted"
+                  className="w-full bg-dark-bg border border-dark-border focus:border-primary focus:ring-2 focus:ring-primary/10 text-dark-text rounded-xl pl-12 pr-4 py-2.5 focus:outline-none transition-all font-sans placeholder-dark-muted text-xs"
                   placeholder="student1@codevault.edu"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-dark-muted mb-2 font-sans">Password</label>
+              <label className="block text-[9px] font-semibold font-mono uppercase tracking-widest text-primary mb-1.5">Security Protocol</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-muted">
-                  <Lock size={18} />
+                  <Lock size={16} />
                 </span>
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-dark-bg border border-dark-border focus:border-primary/50 text-dark-text rounded-xl pl-12 pr-4 py-3 focus:outline-none transition-all font-sans placeholder-dark-muted"
+                  className="w-full bg-dark-bg border border-dark-border focus:border-primary focus:ring-2 focus:ring-primary/10 text-dark-text rounded-xl pl-12 pr-4 py-2.5 focus:outline-none transition-all font-sans placeholder-dark-muted text-xs"
                   placeholder="••••••••"
                 />
               </div>
@@ -115,37 +177,40 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary hover:bg-primary/90 text-dark-bg font-bold py-3 rounded-xl transition-all duration-300 transform active:scale-95 shadow-lg shadow-primary/10 hover:shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed font-sans cursor-pointer"
+              className="w-full bg-primary hover:bg-primary/90 text-dark-bg font-bold py-3 rounded-xl transition-all duration-300 transform active:scale-95 shadow-lg shadow-primary/10 hover:shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed font-sans cursor-pointer flex items-center justify-center gap-2 group"
             >
-              {loading ? 'Establishing connection...' : 'Access Vault'}
+              <span className="uppercase tracking-widest text-xs font-semibold">
+                {loading ? 'Establishing connection...' : 'Initiate Session'}
+              </span>
+              <LogIn size={14} className="transition-transform group-hover:translate-x-1" />
             </button>
           </form>
           
           {/* Account Request Info */}
-          <div className="text-center pt-3 border-t border-dark-border/40 space-y-2">
-            <p className="text-xs text-dark-muted font-sans">
+          <div className="text-center pt-3 border-t border-dark-border/40 space-y-1.5">
+            <p className="text-[11px] text-dark-muted font-sans">
               New user? Accounts are managed by the administrator.
             </p>
             <button 
               type="button"
               onClick={handleRequestAccess}
-              className="w-full bg-dark-bg border border-dark-border hover:border-primary/50 text-white font-mono text-xs py-2.5 px-4 rounded-xl transition-all duration-300 transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full bg-transparent border border-dark-border hover:border-primary/50 text-dark-text font-mono text-[11px] py-2 px-3 rounded-xl transition-all duration-300 transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <Mail size={12} className="text-primary" />
+              <Mail size={11} className="text-primary" />
               <span>Request Account from Dev Kashyap Gajjar</span>
             </button>
           </div>
         </div>
 
         {/* System Footer Accent */}
-        <div className="mt-8 flex items-center justify-center gap-2 text-[10px] font-mono text-dark-muted uppercase tracking-widest">
-          <div className="size-1.5 bg-primary rounded-full animate-pulse"></div>
-          <span>SECURE VAULT SESSION ACTIVE</span>
+        <div className="mt-4 flex items-center justify-center gap-2 text-[9px] font-mono text-dark-muted uppercase tracking-widest">
+          <div className="size-1.5 bg-green-500 rounded-full animate-pulse"></div>
+          <span>System Uplink Stable: 256-bit AES</span>
         </div>
 
         {/* Development Notice */}
-        <div className="mt-4 text-center">
-          <p className="text-[10px] font-mono text-dark-muted/60 uppercase tracking-wider">
+        <div className="mt-2 text-center">
+          <p className="text-[9px] font-mono text-dark-muted opacity-50 uppercase tracking-wider">
             App under development — data is safe but UI/UX changes daily
           </p>
         </div>
@@ -153,7 +218,7 @@ export default function Login() {
 
       {showRequestModal && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-dark-surface border border-primary/20 p-6 md:p-8 rounded-2xl max-w-lg w-full space-y-5 shadow-2xl relative animate-fadeIn">
+          <div className="bg-[#181818] border border-primary/20 p-6 md:p-8 rounded-2xl max-w-lg w-full space-y-5 shadow-2xl relative">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-dark-border pb-3">
               <h3 className="text-lg font-bold text-white font-serif flex items-center gap-2">
@@ -167,7 +232,7 @@ export default function Login() {
               </button>
             </div>
 
-            <p className="text-xs text-dark-muted leading-relaxed font-sans">
+            <p className="text-xs text-dark-muted leading-relaxed font-sans text-left">
               Copy the details below and send them to the developer to get your account created.
             </p>
 
@@ -176,7 +241,7 @@ export default function Login() {
               {/* Email */}
               <div className="space-y-1">
                 <label className="block text-[10px] font-semibold text-dark-muted uppercase tracking-wider font-mono">Recipient Email</label>
-                <div className="flex items-center bg-dark-bg border border-dark-border rounded-xl p-2.5 gap-2">
+                <div className="flex items-center bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 gap-2">
                   <span className="text-white text-xs font-mono select-all truncate flex-1">kashayapgajjar71@gmail.com</span>
                   <button 
                     type="button" 
@@ -196,7 +261,7 @@ export default function Login() {
               {/* Subject */}
               <div className="space-y-1">
                 <label className="block text-[10px] font-semibold text-dark-muted uppercase tracking-wider font-mono">Subject</label>
-                <div className="flex items-center bg-dark-bg border border-dark-border rounded-xl p-2.5 gap-2">
+                <div className="flex items-center bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 gap-2">
                   <span className="text-white text-xs font-mono select-all truncate flex-1">CodeVault Account Request</span>
                   <button 
                     type="button" 
@@ -216,7 +281,7 @@ export default function Login() {
               {/* Body Template */}
               <div className="space-y-1">
                 <label className="block text-[10px] font-semibold text-dark-muted uppercase tracking-wider font-mono">Email Body Template</label>
-                <div className="relative bg-dark-bg border border-dark-border rounded-xl p-4">
+                <div className="relative bg-neutral-950 border border-neutral-800 rounded-xl p-4">
                   <pre className="text-white text-xs font-sans whitespace-pre-wrap leading-relaxed select-all overflow-y-auto max-h-[160px] pb-8 pr-2">{"Hi Kashyap,\n\nI would like to request a new student account on CodeVault.\n\nHere are my details:\n- Full Name: [Enter Your Name]\n- Roll Number / Student ID: [Enter ID]\n- Class / Batch: [Enter Class]\n- Preferred Login Email: [Enter Email]\n\nThank you!"}</pre>
                   <button 
                     type="button" 
@@ -225,7 +290,7 @@ export default function Login() {
                       setCopiedSection('body');
                       setTimeout(() => setCopiedSection(''), 2000);
                     }}
-                    className="absolute right-3 bottom-3 bg-dark-surface border border-dark-border hover:border-primary/50 text-xs text-primary hover:text-primary/80 font-mono flex items-center gap-1.5 px-3 py-1 rounded-lg cursor-pointer shadow-lg"
+                    className="absolute right-3 bottom-3 bg-neutral-900 border border-neutral-800 hover:border-primary/50 text-xs text-primary hover:text-primary/80 font-mono flex items-center gap-1.5 px-3 py-1 rounded-lg cursor-pointer shadow-lg"
                   >
                     {copiedSection === 'body' ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
                     {copiedSection === 'body' ? 'Template Copied!' : 'Copy Template'}

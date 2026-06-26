@@ -247,13 +247,13 @@ export default function ChatDashboard() {
     <div className="max-w-4xl mx-auto h-[calc(100vh-6rem)] flex flex-col bg-dark-surface border border-dark-border rounded-2xl overflow-hidden shadow-2xl relative">
       {/* Header */}
       <div className="bg-dark-bg border-b border-dark-border p-4 flex items-center justify-between z-10 shrink-0">
-        <h1 className="text-xl font-bold text-white font-serif flex items-center gap-2">
+        <h1 className="text-xl font-bold text-dark-text font-serif flex items-center gap-2">
           <MessageCircle className="text-primary" /> Chats
         </h1>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowProfileModal(true)}
-            className="bg-dark-bg hover:bg-dark-surface text-dark-muted hover:text-white border border-dark-border px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold transition-colors cursor-pointer"
+            className="bg-dark-bg hover:bg-dark-surface text-dark-muted hover:text-primary border border-dark-border px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold transition-colors cursor-pointer"
           >
             <Settings size={16} /> <span className="hidden sm:inline">{currentUsername || 'Set Username'}</span>
           </button>
@@ -277,7 +277,7 @@ export default function ChatDashboard() {
             <div className="bg-dark-bg w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-dark-border text-dark-muted">
               <MessageCircle size={24} />
             </div>
-            <h2 className="text-lg font-bold text-white mb-2">No Chats Yet</h2>
+            <h2 className="text-lg font-bold text-dark-text mb-2">No Chats Yet</h2>
             <p className="text-dark-muted text-sm max-w-sm mx-auto mb-6">
               Start a new 1-on-1 conversation or create a group to share code with your friends.
             </p>
@@ -304,7 +304,7 @@ export default function ChatDashboard() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-baseline mb-1">
-                  <h3 className="text-white font-bold truncate">{chat.name}</h3>
+                  <h3 className="text-dark-text font-bold truncate">{chat.name}</h3>
                   <span className="text-[10px] text-dark-muted font-mono shrink-0 ml-2">
                     {formatDistanceToNow(new Date(chat.latestMessageTime), { addSuffix: true })}
                   </span>
@@ -320,20 +320,20 @@ export default function ChatDashboard() {
       {showNewChatModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-dark-surface border border-dark-border p-6 rounded-2xl w-full max-w-md shadow-2xl">
-            <h2 className="text-xl font-bold text-white font-serif mb-6 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-dark-text font-serif mb-6 flex items-center gap-2">
               <Plus className="text-primary" /> Start a Conversation
             </h2>
             
             <div className="flex gap-2 mb-6 p-1 bg-dark-bg rounded-lg">
               <button 
                 onClick={() => setIsGroup(false)}
-                className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${!isGroup ? 'bg-dark-surface text-primary shadow' : 'text-dark-muted hover:text-white'}`}
+                className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${!isGroup ? 'bg-dark-surface text-primary shadow' : 'text-dark-muted hover:text-primary'}`}
               >
                 1-on-1 Chat
               </button>
               <button 
                 onClick={() => setIsGroup(true)}
-                className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${isGroup ? 'bg-dark-surface text-primary shadow' : 'text-dark-muted hover:text-white'}`}
+                className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${isGroup ? 'bg-dark-surface text-primary shadow' : 'text-dark-muted hover:text-primary'}`}
               >
                 New Group
               </button>
@@ -350,7 +350,7 @@ export default function ChatDashboard() {
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-dark-bg border border-dark-border rounded-xl pl-10 pr-4 py-2.5 text-white focus:outline-none focus:border-primary transition-colors"
+                      className="w-full bg-dark-bg border border-dark-border rounded-xl pl-10 pr-4 py-2.5 text-dark-text focus:outline-none focus:border-primary transition-colors"
                       placeholder="Search users..."
                     />
                   </div>
@@ -370,7 +370,7 @@ export default function ChatDashboard() {
                             <User size={16} className="text-primary/70" />
                           </div>
                           <div className="min-w-0">
-                            <div className="text-sm font-bold text-white truncate">{u.username || u.email.split('@')[0]}</div>
+                            <div className="text-sm font-bold text-dark-text truncate">{u.username || u.email.split('@')[0]}</div>
                             <div className="text-xs text-dark-muted truncate">{u.email}</div>
                           </div>
                         </div>
@@ -388,7 +388,7 @@ export default function ChatDashboard() {
                       type="text"
                       value={groupName}
                       onChange={(e) => setGroupName(e.target.value)}
-                      className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary transition-colors"
+                      className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-2.5 text-dark-text focus:outline-none focus:border-primary transition-colors"
                       placeholder="e.g. Java Project Team"
                     />
                   </div>
@@ -400,7 +400,7 @@ export default function ChatDashboard() {
                       className="w-4 h-4 rounded border-dark-border text-primary focus:ring-primary focus:ring-offset-dark-bg bg-dark-surface"
                     />
                     <div>
-                      <div className="text-sm font-medium text-white">Admin-Only Messages</div>
+                      <div className="text-sm font-medium text-dark-text">Admin-Only Messages</div>
                       <div className="text-xs text-dark-muted">Only admins can send messages in this group.</div>
                     </div>
                   </label>
@@ -413,7 +413,7 @@ export default function ChatDashboard() {
                         className="w-4 h-4 rounded border-dark-border text-primary focus:ring-primary focus:ring-offset-dark-bg bg-dark-surface"
                       />
                       <div>
-                        <div className="text-sm font-medium text-white">Global Group</div>
+                        <div className="text-sm font-medium text-dark-text">Global Group</div>
                         <div className="text-xs text-dark-muted">Visible to ALL CodeVault users automatically.</div>
                       </div>
                     </label>
@@ -426,7 +426,7 @@ export default function ChatDashboard() {
                   <button
                     type="button"
                     onClick={() => setShowNewChatModal(false)}
-                    className="flex-1 px-4 py-2 bg-dark-bg border border-dark-border text-white rounded-xl hover:bg-dark-border transition-colors font-sans text-sm"
+                    className="flex-1 px-4 py-2 bg-dark-bg border border-dark-border text-dark-text rounded-xl hover:bg-dark-border transition-colors font-sans text-sm"
                   >
                     Cancel
                   </button>
@@ -458,7 +458,7 @@ export default function ChatDashboard() {
                   type="text"
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
-                  className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary transition-colors"
+                  className="w-full bg-dark-bg border border-dark-border rounded-xl px-4 py-2.5 text-dark-text focus:outline-none focus:border-primary transition-colors"
                   placeholder="e.g. CodeNinja99"
                 />
               </div>
@@ -466,7 +466,7 @@ export default function ChatDashboard() {
                 <button
                   type="button"
                   onClick={() => setShowProfileModal(false)}
-                  className="flex-1 px-4 py-2 bg-dark-bg border border-dark-border text-white rounded-xl hover:bg-dark-border transition-colors font-sans text-sm"
+                  className="flex-1 px-4 py-2 bg-dark-bg border border-dark-border text-dark-text rounded-xl hover:bg-dark-border transition-colors font-sans text-sm"
                 >
                   Cancel
                 </button>

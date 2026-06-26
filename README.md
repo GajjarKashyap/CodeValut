@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
 
 <img src="public/screenshots/login.png" alt="CodeVault Login" width="100%"/>
 
@@ -66,17 +66,49 @@
 - **Download TXT** — Export session as a plain text file
 - **Copy Buttons** — Copy code, output, or notes to clipboard with one click
 
+### 💬 Real-time Chat
+- **Group Chats** — Admin can create named group rooms for any subject or topic
+- **Direct Messages** — One-to-one private messaging between any two students
+- **Global Rooms** — Broadcast channels where all students are auto-joined
+- **Code Snippets in Chat** — Share a code session directly inside a chat message with full syntax highlighting
+- **Emoji Reactions** — React to any message with 👍 ❤️ 😂 😮 😢 👏
+- **Reply Threads** — Quote and reply to any specific message
+- **Typing Indicators** — See live "User is typing…" dots in real-time
+- **Realtime Delivery** — Messages arrive instantly via Supabase Realtime channels
+
+### 👤 User Profiles & Avatars
+- **Custom Display Name & Username** — Set how your name appears to others in Settings
+- **Avatar Upload** — Upload a custom profile picture (JPG, PNG, WEBP, max 2MB)
+- **Auto Cleanup** — Old avatar is automatically deleted from storage on upload to save space
+- **Avatars in Chat** — Profile pictures appear next to every message in chat rooms
+- **Sidebar Avatar** — Your avatar shows in the bottom-left of the sidebar on desktop
+
+### 🔔 Notifications
+- **In-App Bell** — Bell icon in the header with a live red dot when new alerts arrive
+- **Realtime Push** — Notifications delivered instantly via Supabase Realtime (no page refresh needed)
+- **Native Desktop Alerts** — Browser permission prompt on login; approved users get Windows/Mac system pop-ups for new notifications
+- **Notification Types** — Supports `announcement`, `reply`, `mention`, and `moderation` categories
+- **Mark as Read** — Click any notification in the dropdown to dismiss it
+
 ### 🛡️ Admin Mode
 - **See all students' sessions** across the entire platform
 - **Student Activity Directory** — Table with Java/MongoDB/Total counts per student
 - **Click-to-filter** — Click any student row to filter sessions by that student
 - **Email badges** — Every session card shows the owner's email when in admin mode
+- **Avatar Moderation** — View every user's avatar thumbnail in the admin table; remove any avatar that breaks rules with a single click (requires confirmation to prevent accidents)
+- **Audit Log** — Every admin moderation action (avatar deletion) is automatically logged to `audit_logs` for accountability
+- **Global Announcements** — Send an instant broadcast notification to every registered student's notification bell from the admin dashboard
 
-### 🎨 Design
+### 🎨 Themes & Design
+- **Theme Engine** — Switch between 4 beautiful built-in themes from the Settings page:
+  - 🟡 **Original Gold** — Classic dark with warm gold accent
+  - 🔵 **Ocean Blue** — Deep navy with electric blue
+  - 🟢 **Emerald Hack** — Terminal-green hacker aesthetic
+  - ⚪ **Pearl Light** — Clean light mode with violet accent
 - **Premium dark theme** — Gold (`#c8ab7e`) accent on near-black terminal background
 - **Glassmorphism** on Login card
 - **Micro-animations** — Hover states, fadeIn, scale transforms
-- **Responsive** — Desktop sidebar + mobile bottom navigation
+- **Responsive** — Desktop sidebar + mobile bottom navigation (Home, Chat, Search, Settings)
 - **Custom scrollbar** — Gold-tinted on hover
 
 ---
@@ -89,7 +121,8 @@
 | Routing | React Router v7 (HashRouter for GitHub Pages) |
 | Styling | Tailwind CSS v4 + Custom Design Tokens |
 | Code Editor | Monaco Editor (`@monaco-editor/react`) |
-| Backend / Database | Supabase (PostgreSQL + Auth + RLS) |
+| Backend / Database | Supabase (PostgreSQL + Auth + RLS + Realtime) |
+| Storage | Supabase Storage (Avatar images bucket) |
 | Date Formatting | `date-fns` |
 | Icons | `lucide-react` |
 | Deployment | GitHub Pages (static) |
@@ -120,16 +153,38 @@ CREATE TABLE sessions (
   updated_at  TIMESTAMPTZ DEFAULT now()
 );
 
--- Row Level Security
-ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
+-- profiles table
+CREATE TABLE profiles (
+  id           UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  username     TEXT,
+  display_name TEXT,
+  avatar_url   TEXT,
+  created_at   TIMESTAMPTZ DEFAULT now(),
+  updated_at   TIMESTAMPTZ DEFAULT now()
+);
 
--- Students see only their own sessions
-CREATE POLICY "Users manage own sessions"
-ON sessions FOR ALL USING (auth.uid() = user_id);
+-- notifications table
+CREATE TABLE notifications (
+  id         UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id    UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  type       TEXT NOT NULL,   -- 'announcement' | 'reply' | 'mention' | 'moderation'
+  message    TEXT NOT NULL,
+  link       TEXT,
+  is_read    BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
 
--- Shared sessions are publicly readable (no auth needed)
-CREATE POLICY "Shared sessions readable by anyone"
-ON sessions FOR SELECT USING (is_shared = true);
+-- audit_logs table (admin moderation history)
+CREATE TABLE audit_logs (
+  id             UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  admin_id       UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  action         TEXT NOT NULL,
+  target_user_id UUID,
+  details        TEXT,
+  created_at     TIMESTAMPTZ DEFAULT now()
+);
+
+-- Row Level Security enabled on all tables
 ```
 
 ---
@@ -155,10 +210,10 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ### 3. Set Up Database
-Run the SQL from the **Database Schema** section above in your Supabase SQL editor.
+Run all the SQL from the **Database Schema** section above in your Supabase SQL editor. Also create an `avatars` storage bucket in Supabase Storage (set to **Public**).
 
 ### 4. Create Admin Account
-Create an admin user in Supabase Auth with the designated admin email and set a secure password.
+Create a user in Supabase Auth with the email `admin@admin.com` to get admin privileges.
 
 ### 5. Run Locally
 ```bash
@@ -167,8 +222,7 @@ npm run dev
 
 ### 6. Deploy to GitHub Pages
 ```bash
-npm run build
-# Push the dist/ folder or use GitHub Actions
+npm run deploy
 ```
 
 ---
@@ -178,29 +232,39 @@ npm run build
 ```
 src/
 ├── components/
-│   └── Layout.jsx          # Sidebar + topbar + mobile nav + beta notice
+│   └── Layout.jsx          # Sidebar + topbar + mobile nav + notifications + avatar
 ├── contexts/
 │   └── AuthContext.jsx     # Supabase auth state
 ├── lib/
 │   └── supabase.js         # Supabase client
 ├── pages/
 │   ├── Login.jsx           # Terminal-themed login
-│   ├── Dashboard.jsx       # Stats + recent sessions + admin directory
+│   ├── Dashboard.jsx       # Stats + admin directory + announcement tool
 │   ├── SessionForm.jsx     # Create/edit sessions with Monaco editor
 │   ├── SessionList.jsx     # Java / MongoDB / Favorites filtered lists
 │   ├── Search.jsx          # Real-time search with filter chips
 │   ├── Share.jsx           # Public share view (no auth required)
-│   └── Archive.jsx         # Archived sessions with restore/delete
-└── index.css               # Global styles, animations, scrollbar
+│   ├── Archive.jsx         # Archived sessions with restore/delete
+│   ├── ChatDashboard.jsx   # Chat list — DMs, groups, global rooms
+│   ├── ChatRoom.jsx        # Real-time chat with reactions, replies, snippets
+│   └── Settings.jsx        # Theme engine + user profile + avatar upload
+└── index.css               # Global styles, animations, scrollbar, theme tokens
 ```
 
 ---
 
 ## 🗺️ Roadmap
 
+- [x] Real-time Group Chat & Direct Messages
+- [x] Code Snippet sharing in Chat
+- [x] Emoji Reactions & Reply Threads
+- [x] User Profiles & Custom Avatars
+- [x] Realtime Notification Center with Native Desktop Alerts
+- [x] Admin Avatar Moderation with Audit Log
+- [x] Global Announcement Broadcast Tool
+- [x] Theme Engine (Gold / Blue / Emerald / Pearl)
 - [ ] PDF export of sessions
 - [ ] Session statistics / progress charts
-- [ ] Dark/light mode toggle
 - [ ] Rich text notes (Markdown preview)
 - [ ] Batch export (ZIP of all sessions as TXT)
 - [ ] Teacher comments on shared sessions
@@ -229,5 +293,3 @@ src/
 *Built with passion for students who deserve better than paper lab notebooks.*
 
 </div>
-
-

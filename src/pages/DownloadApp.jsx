@@ -2,29 +2,7 @@ import { useState } from 'react';
 import { ArrowLeft, Coffee, Download, Star, User, Check, Sparkles, ShieldCheck, Code, Smartphone } from 'lucide-react';
 
 export default function DownloadApp() {
-  const [reviews, setReviews] = useState([
-    {
-      id: 1,
-      name: 'Rohan Sharma',
-      rating: 5,
-      comment: 'This app is a life saver for Java labs! The terminal look is super cool, and local notifications work instantly.',
-      date: 'June 25, 2026'
-    },
-    {
-      id: 2,
-      name: 'Aanya Patel',
-      rating: 5,
-      comment: 'Love the Pearl Light theme! No more contrast issues, all text is very readable now. Submitting code is super fast.',
-      date: 'June 24, 2026'
-    },
-    {
-      id: 3,
-      name: 'Kshitij Verma',
-      rating: 4,
-      comment: 'Very handy app for college. The offline messaging works nicely, and the database integration is clean.',
-      date: 'June 20, 2026'
-    }
-  ]);
+  const [reviews, setReviews] = useState([]);
 
   // Form State
   const [name, setName] = useState('');
@@ -35,7 +13,16 @@ export default function DownloadApp() {
 
   // Stats calculation
   const totalReviewsCount = reviews.length;
-  const averageRating = (reviews.reduce((acc, r) => acc + r.rating, 0) / totalReviewsCount).toFixed(1);
+  const averageRating = totalReviewsCount > 0
+    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / totalReviewsCount).toFixed(1)
+    : "0.0";
+
+  // Dynamic Star Percentage calculation
+  const getStarPercentage = (star) => {
+    if (totalReviewsCount === 0) return 0;
+    const count = reviews.filter(r => r.rating === star).length;
+    return Math.round((count / totalReviewsCount) * 100);
+  };
 
   // Screenshots array
   const screenshots = [
@@ -43,7 +30,7 @@ export default function DownloadApp() {
     { name: 'Hacker IDE Code Editor', path: 'screenshots/session_editor.png', desc: 'Write, edit, and organize code sessions with premium syntax highlights.' },
     { name: 'Real-time Chat', path: 'screenshots/search.png', desc: 'Chat instantly with peers and share updates during sessions.' },
     { name: 'Notebook Repository', path: 'screenshots/session_list.png', desc: 'Access your full subject practical directories.' },
-    { name: 'Secure Authentication', path: 'screenshots/login.png', desc: 'Hacker-terminal styled secure entrance.' }
+    { name: 'Secure Login', path: 'screenshots/login.png', desc: 'Hacker-terminal styled secure entrance.' }
   ];
 
   const handleBackToLogin = () => {
@@ -212,7 +199,6 @@ export default function DownloadApp() {
                     alt={s.name} 
                     onError={(e) => {
                       e.target.onerror = null;
-                      // Fallback path in case base directory varies on deployment
                       e.target.src = '/CodeValut/' + s.path;
                     }}
                     className="w-full h-full object-cover"
@@ -271,7 +257,7 @@ export default function DownloadApp() {
                   <Star 
                     key={i} 
                     size={16} 
-                    className={i < Math.round(averageRating) ? "text-yellow-500 fill-yellow-500" : "text-dark-border"} 
+                    className={i < Math.round(Number(averageRating)) ? "text-yellow-500 fill-yellow-500" : "text-dark-border"} 
                   />
                 ))}
               </div>
@@ -280,41 +266,18 @@ export default function DownloadApp() {
 
             {/* Right Distribution Bars */}
             <div className="flex-1 w-full space-y-2 font-mono text-xs">
-              <div className="flex items-center gap-3">
-                <span className="w-3">5</span>
-                <div className="flex-1 h-2 bg-neutral-900 border border-dark-border rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: '85%' }}></div>
-                </div>
-                <span className="w-8 text-right text-dark-muted">85%</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="w-3">4</span>
-                <div className="flex-1 h-2 bg-neutral-900 border border-dark-border rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: '10%' }}></div>
-                </div>
-                <span className="w-8 text-right text-dark-muted">10%</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="w-3">3</span>
-                <div className="flex-1 h-2 bg-neutral-900 border border-dark-border rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: '5%' }}></div>
-                </div>
-                <span className="w-8 text-right text-dark-muted">5%</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="w-3">2</span>
-                <div className="flex-1 h-2 bg-neutral-900 border border-dark-border rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: '0%' }}></div>
-                </div>
-                <span className="w-8 text-right text-dark-muted">0%</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="w-3">1</span>
-                <div className="flex-1 h-2 bg-neutral-900 border border-dark-border rounded-full overflow-hidden">
-                  <div className="h-full bg-primary" style={{ width: '0%' }}></div>
-                </div>
-                <span className="w-8 text-right text-dark-muted">0%</span>
-              </div>
+              {[5, 4, 3, 2, 1].map((star) => {
+                const pct = getStarPercentage(star);
+                return (
+                  <div key={star} className="flex items-center gap-3">
+                    <span className="w-3">{star}</span>
+                    <div className="flex-1 h-2 bg-neutral-900 border border-dark-border rounded-full overflow-hidden">
+                      <div className="h-full bg-primary transition-all duration-300" style={{ width: `${pct}%` }}></div>
+                    </div>
+                    <span className="w-8 text-right text-dark-muted">{pct}%</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -390,38 +353,44 @@ export default function DownloadApp() {
 
           {/* Active reviews list */}
           <div className="space-y-4">
-            {reviews.map((r) => (
-              <div 
-                key={r.id} 
-                className="bg-dark-surface/20 border border-dark-border/80 rounded-2xl p-5 space-y-3 animate-fadeIn"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-neutral-900 border border-dark-border flex items-center justify-center">
-                      <User size={14} className="text-dark-muted" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-xs text-dark-text">{r.name}</div>
-                      <div className="text-[9px] font-mono text-dark-muted">{r.date}</div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-0.5">
-                    {[...Array(5)].map((_, i) => (
-                      <Star 
-                        key={i} 
-                        size={12} 
-                        className={i < r.rating ? "text-yellow-500 fill-yellow-500" : "text-dark-border"} 
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <p className="text-xs text-dark-muted leading-relaxed font-sans pl-0.5">
-                  {r.comment}
-                </p>
+            {reviews.length === 0 ? (
+              <div className="text-center py-12 border border-dashed border-dark-border rounded-2xl bg-dark-surface/10">
+                <p className="text-xs text-dark-muted font-sans">No reviews yet. Be the first to share your experience!</p>
               </div>
-            ))}
+            ) : (
+              reviews.map((r) => (
+                <div 
+                  key={r.id} 
+                  className="bg-dark-surface/20 border border-dark-border/80 rounded-2xl p-5 space-y-3 animate-fadeIn"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-neutral-900 border border-dark-border flex items-center justify-center">
+                        <User size={14} className="text-dark-muted" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-xs text-dark-text">{r.name}</div>
+                        <div className="text-[9px] font-mono text-dark-muted">{r.date}</div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-0.5">
+                      {[...Array(5)].map((_, i) => (
+                        <Star 
+                          key={i} 
+                          size={12} 
+                          className={i < r.rating ? "text-yellow-500 fill-yellow-500" : "text-dark-border"} 
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-dark-muted leading-relaxed font-sans pl-0.5">
+                    {r.comment}
+                  </p>
+                </div>
+              ))
+            )}
           </div>
 
         </div>

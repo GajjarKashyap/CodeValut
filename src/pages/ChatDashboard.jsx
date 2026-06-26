@@ -36,79 +36,6 @@ export default function ChatDashboard() {
       .subscribe();
       
   
-  const handleUpdateProfile = async (e) => {
-    e.preventDefault();
-    if (!usernameInput.trim()) return setError('Username cannot be empty');
-    
-    try {
-      const { error } = await supabase
-        .from('user_activity')
-        .update({ username: usernameInput.trim() })
-        .eq('user_id', user.id);
-        
-      if (error) throw error;
-      setCurrentUsername(usernameInput.trim());
-      setShowProfileModal(false);
-    } catch (err) {
-      setError('Failed to update profile');
-    }
-  };
-
-  const handleCreateDM = async (otherUser) => {
-    setError('');
-    try {
-      // First, check if a DM already exists between these two users
-      // This is a bit complex without an edge function, so we'll just query groups
-      // that the current user is in, and check if the other user is also in it.
-      
-      const { data: myGroups } = await supabase
-        .from('group_members')
-        .select('group_id, groups!inner(is_direct_message)')
-        .eq('user_id', user.id)
-        .eq('groups.is_direct_message', true);
-        
-      if (myGroups && myGroups.length > 0) {
-        const groupIds = myGroups.map(g => g.group_id);
-        const { data: sharedGroups } = await supabase
-          .from('group_members')
-          .select('group_id')
-          .in('group_id', groupIds)
-          .eq('user_id', otherUser.user_id);
-          
-        if (sharedGroups && sharedGroups.length > 0) {
-          // DM already exists!
-          setShowNewChatModal(false);
-          navigate(`/chat/${sharedGroups[0].group_id}`);
-          return;
-        }
-      }
-
-      // If no DM exists, create one
-      const { data: group, error: groupError } = await supabase
-        .from('groups')
-        .insert({
-          name: `DM between ${user.email} and ${otherUser.email}`,
-          is_direct_message: true,
-          created_by: user.id
-        })
-        .select()
-        .single();
-        
-      if (groupError) throw groupError;
-      
-      // Add BOTH users
-      await supabase.from('group_members').insert([
-        { group_id: group.id, user_id: user.id, role: 'admin' },
-        { group_id: group.id, user_id: otherUser.user_id, role: 'member' }
-      ]);
-      
-      setShowNewChatModal(false);
-      navigate(`/chat/${group.id}`);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to create chat.');
-    }
-  };
 
   return () => {
       supabase.removeChannel(channel);
@@ -246,6 +173,73 @@ export default function ChatDashboard() {
     } catch (err) {
       console.error(err);
       setError('Failed to create chat. Make sure you ran the SQL script.');
+    }
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    if (!usernameInput.trim()) return setError('Username cannot be empty');
+    
+    try {
+      const { error } = await supabase
+        .from('user_activity')
+        .update({ username: usernameInput.trim() })
+        .eq('user_id', user.id);
+        
+      if (error) throw error;
+      setCurrentUsername(usernameInput.trim());
+      setShowProfileModal(false);
+    } catch (err) {
+      setError('Failed to update profile');
+    }
+  };
+
+  const handleCreateDM = async (otherUser) => {
+    setError('');
+    try {
+      const { data: myGroups } = await supabase
+        .from('group_members')
+        .select('group_id, groups!inner(is_direct_message)')
+        .eq('user_id', user.id)
+        .eq('groups.is_direct_message', true);
+        
+      if (myGroups && myGroups.length > 0) {
+        const groupIds = myGroups.map(g => g.group_id);
+        const { data: sharedGroups } = await supabase
+          .from('group_members')
+          .select('group_id')
+          .in('group_id', groupIds)
+          .eq('user_id', otherUser.user_id);
+          
+        if (sharedGroups && sharedGroups.length > 0) {
+          setShowNewChatModal(false);
+          navigate(`/chat/${sharedGroups[0].group_id}`);
+          return;
+        }
+      }
+
+      const { data: group, error: groupError } = await supabase
+        .from('groups')
+        .insert({
+          name: `DM between ${user.email} and ${otherUser.email}`,
+          is_direct_message: true,
+          created_by: user.id
+        })
+        .select()
+        .single();
+        
+      if (groupError) throw groupError;
+      
+      await supabase.from('group_members').insert([
+        { group_id: group.id, user_id: user.id, role: 'admin' },
+        { group_id: group.id, user_id: otherUser.user_id, role: 'member' }
+      ]);
+      
+      setShowNewChatModal(false);
+      navigate(`/chat/${group.id}`);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to create chat.');
     }
   };
 

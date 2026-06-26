@@ -151,7 +151,7 @@ export default function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-transparent border border-dark-border focus:border-primary text-dark-text rounded-xl pl-12 pr-4 py-2.5 focus:outline-none transition-all font-sans placeholder-dark-muted text-xs"
+                  className="w-full bg-dark-bg border border-dark-border focus:border-primary focus:ring-2 focus:ring-primary/10 text-dark-text rounded-xl pl-12 pr-4 py-2.5 focus:outline-none transition-all font-sans placeholder-dark-muted text-xs"
                   placeholder="student1@codevault.edu"
                 />
               </div>
@@ -168,7 +168,7 @@ export default function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-transparent border border-dark-border focus:border-primary text-dark-text rounded-xl pl-12 pr-4 py-2.5 focus:outline-none transition-all font-sans placeholder-dark-muted text-xs"
+                  className="w-full bg-dark-bg border border-dark-border focus:border-primary focus:ring-2 focus:ring-primary/10 text-dark-text rounded-xl pl-12 pr-4 py-2.5 focus:outline-none transition-all font-sans placeholder-dark-muted text-xs"
                   placeholder="••••••••"
                 />
               </div>
@@ -203,7 +203,7 @@ export default function Login() {
         </div>
 
         {/* Compact Android App Promotion Banner */}
-        <div className="mt-3.5 bg-dark-surface backdrop-blur-md p-4 rounded-xl border theme-border-primary-20 shadow-2xl flex items-center justify-between gap-3 animate-pulse-gold w-full">
+        <div className="mt-3.5 theme-bg-primary-5 backdrop-blur-md p-4 rounded-xl border theme-border-primary-20 shadow-2xl flex items-center justify-between gap-3 animate-pulse-gold w-full">
           <div className="flex items-center gap-3 text-left">
             <div className="w-10 h-10 rounded-xl theme-bg-primary-10 flex items-center justify-center border theme-border-primary-20 shrink-0">
               <Smartphone size={20} className="text-primary" />

@@ -11,7 +11,7 @@ export default function SessionList({ filter }) {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const isAdmin = user?.email?.toLowerCase() === 'admin@admin.com';
+  const isAdmin = user?.email?.trim()?.toLowerCase() === 'admin@admin.com';
   const displayTitle = filter === 'favorites' ? 'Favorites' : subject === 'java' ? 'Java Sessions' : 'MongoDB Sessions';
 
   useEffect(() => {

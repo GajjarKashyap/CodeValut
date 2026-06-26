@@ -13,7 +13,7 @@ export default function Search() {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  const isAdmin = user?.email?.toLowerCase() === 'admin@admin.com';
+  const isAdmin = user?.email?.trim()?.toLowerCase() === 'admin@admin.com';
 
   useEffect(() => {
     if (user) {

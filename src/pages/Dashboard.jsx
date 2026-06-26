@@ -14,7 +14,7 @@ export default function Dashboard() {
   const [selectedStudentFilter, setSelectedStudentFilter] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const isAdmin = user?.email?.toLowerCase() === 'admin@admin.com';
+  const isAdmin = user?.email?.trim()?.toLowerCase() === 'admin@admin.com';
 
   const fetchDashboardData = async () => {
       try {

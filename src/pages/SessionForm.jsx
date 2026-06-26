@@ -28,7 +28,7 @@ export default function SessionForm() {
   });
 
   const DRAFT_KEY = `codevault_draft_${id || 'new'}`;
-  const isAdmin = user?.email?.toLowerCase() === 'admin@admin.com';
+  const isAdmin = user?.email?.trim()?.toLowerCase() === 'admin@admin.com';
 
   // Fetch session if editing
   useEffect(() => {

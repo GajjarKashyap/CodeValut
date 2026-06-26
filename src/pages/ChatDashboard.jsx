@@ -16,7 +16,7 @@ export default function ChatDashboard() {
   const [isGroup, setIsGroup] = useState(false);
   const [isAdminOnly, setIsAdminOnly] = useState(false);
   const [isGlobal, setIsGlobal] = useState(false);
-  const isAdmin = user?.email?.toLowerCase() === 'admin@admin.com';
+  const isAdmin = user?.email?.trim()?.toLowerCase() === 'admin@admin.com';
   const [error, setError] = useState('');
   const [allUsers, setAllUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');

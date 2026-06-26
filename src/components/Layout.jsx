@@ -198,8 +198,10 @@ export default function Layout() {
       <main className="flex-1 flex flex-col pb-16 md:pb-0 h-screen overflow-hidden">
         {/* Top Bar */}
         <header className="h-14 flex items-center justify-between px-5 border-b border-dark-border bg-dark-surface/80 backdrop-blur-md shrink-0">
-          <div className="font-medium font-mono text-xs text-dark-muted tracking-wide">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+          <div className="font-medium font-mono text-xs text-dark-muted tracking-wide flex items-center gap-3">
+            <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
+            <span className="text-primary/40 hidden sm:inline">|</span>
+            <span className="text-primary font-sans text-[10px] font-semibold bg-primary/10 border border-primary/20 rounded px-2 py-0.5 whitespace-nowrap">Developed by Kashyap Gajjar</span>
           </div>
           <div className="flex items-center space-x-2">
             <button

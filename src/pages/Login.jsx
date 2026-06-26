@@ -54,6 +54,9 @@ export default function Login() {
           </div>
           <h1 className="text-4xl font-bold font-serif text-white mb-2 tracking-tight">CodeVault</h1>
           <p className="text-dark-muted font-sans text-sm">Secure practical notebook for college labs</p>
+          <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary font-mono text-xs uppercase tracking-wider font-semibold">
+            Developed by Kashyap Gajjar
+          </div>
         </div>
 
         {/* Glassmorphic Terminal Card */}

@@ -68,79 +68,81 @@ export default function Login() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] md:w-[450px] md:h-[450px] rounded-full bg-primary/10 blur-[100px] pointer-events-none" />
 
       <div className="max-w-md w-full z-10 flex flex-col items-center">
-        {/* Header Section */}
-        <div className="text-center mb-8 flex flex-col items-center">
-          <div className="bg-primary/10 w-20 h-20 rounded-2xl flex items-center justify-center mb-4 border border-primary/20 shadow-xl shadow-primary/5 animate-pulse">
-            <Coffee size={40} className="text-primary" />
+        {/* Compact Header Section */}
+        <div className="text-center mb-4 flex flex-col items-center">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="bg-primary/10 w-10 h-10 rounded-xl flex items-center justify-center border border-primary/20 shadow-lg shadow-primary/5 animate-pulse">
+              <Coffee size={22} className="text-primary" />
+            </div>
+            <h1 className="text-3xl font-bold font-serif text-primary tracking-tight">CodeVault</h1>
           </div>
-          <h1 className="text-5xl font-bold font-serif text-primary mb-2 tracking-tight">CodeVault</h1>
-          <div className="px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 mt-1 shadow-sm">
-            <span className="font-mono text-[10px] md:text-xs uppercase tracking-widest text-primary font-semibold">
+          <div className="px-3 py-1 rounded-full border border-primary/20 bg-primary/5 shadow-sm">
+            <span className="font-mono text-[9px] uppercase tracking-widest text-primary font-semibold">
               Developed by Kashyap Gajjar
             </span>
           </div>
         </div>
 
-        {/* Glassmorphic Terminal Card */}
-        <div className="bg-dark-surface/60 backdrop-blur-md p-8 rounded-2xl border border-primary/20 shadow-2xl space-y-6 relative overflow-hidden group transition-all duration-300 hover:border-primary/30 w-full">
+        {/* Glassmorphic Terminal Card (More Compact) */}
+        <div className="bg-dark-surface/60 backdrop-blur-md p-6 rounded-2xl border border-primary/20 shadow-2xl space-y-4 relative overflow-hidden group transition-all duration-300 hover:border-primary/30 w-full">
           {/* Decorative Corner Accents */}
           <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary/30 rounded-tl-2xl pointer-events-none"></div>
           <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary/30 rounded-br-2xl pointer-events-none"></div>
 
           {/* Terminal Window Header Decoration */}
-          <div className="flex items-center justify-between border-b border-dark-border pb-4 -mt-2">
-            <div className="flex items-center space-x-2 text-xs font-mono text-dark-muted">
-              <Terminal size={14} className="text-primary" />
+          <div className="flex items-center justify-between border-b border-dark-border pb-3 -mt-1">
+            <div className="flex items-center space-x-2 text-[11px] font-mono text-dark-muted">
+              <Terminal size={12} className="text-primary" />
               <span>ssh student@codevault</span>
             </div>
             <div className="flex gap-1.5">
-              <div className="size-2 rounded-full bg-red-500/30"></div>
-              <div className="size-2 rounded-full bg-yellow-500/30"></div>
-              <div className="size-2 rounded-full bg-green-500/30"></div>
+              <div className="size-1.5 rounded-full bg-red-500/30"></div>
+              <div className="size-1.5 rounded-full bg-yellow-500/30"></div>
+              <div className="size-1.5 rounded-full bg-green-500/30"></div>
             </div>
           </div>
 
-          <div className="text-left mb-6">
-            <h2 className="text-2xl font-bold font-serif text-white mb-1">Secure Access</h2>
-            <p className="text-dark-muted font-mono text-[11px]">Enter credentials to decrypt session.</p>
+          <div className="text-left mb-3">
+            <h2 className="text-xl font-bold font-serif text-white mb-0.5">Secure Access</h2>
+            <p className="text-dark-muted font-mono text-[10px]">Enter credentials to decrypt session.</p>
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl text-sm font-sans text-left">
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs font-sans text-left">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-5 text-left">
+          <form onSubmit={handleLogin} className="space-y-4 text-left">
             <div>
-              <label className="block text-[10px] font-semibold font-mono uppercase tracking-widest text-primary mb-2">Access Identity</label>
+              <label className="block text-[9px] font-semibold font-mono uppercase tracking-widest text-primary mb-1.5">Access Identity</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-muted">
-                  <Fingerprint size={18} />
+                  <Fingerprint size={16} />
                 </span>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-dark-bg/60 border border-dark-border focus:border-primary/50 text-dark-text rounded-xl pl-12 pr-4 py-3 focus:outline-none transition-all font-sans placeholder-dark-muted text-sm"
+                  className="w-full bg-dark-bg/60 border border-dark-border focus:border-primary/50 text-dark-text rounded-xl pl-12 pr-4 py-2.5 focus:outline-none transition-all font-sans placeholder-dark-muted text-xs"
                   placeholder="student1@codevault.edu"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[10px] font-semibold font-mono uppercase tracking-widest text-primary mb-2">Security Protocol</label>
+              <label className="block text-[9px] font-semibold font-mono uppercase tracking-widest text-primary mb-1.5">Security Protocol</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-muted">
-                  <Lock size={18} />
+                  <Lock size={16} />
                 </span>
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-dark-bg/60 border border-dark-border focus:border-primary/50 text-dark-text rounded-xl pl-12 pr-4 py-3 focus:outline-none transition-all font-sans placeholder-dark-muted text-sm"
+                  className="w-full bg-dark-bg/60 border border-dark-border focus:border-primary/50 text-dark-text rounded-xl pl-12 pr-4 py-2.5 focus:outline-none transition-all font-sans placeholder-dark-muted text-xs"
                   placeholder="••••••••"
                 />
               </div>
@@ -149,64 +151,64 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary hover:bg-primary/90 text-dark-bg font-bold py-3.5 rounded-xl transition-all duration-300 transform active:scale-95 shadow-lg shadow-primary/10 hover:shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed font-sans cursor-pointer flex items-center justify-center gap-2 group"
+              className="w-full bg-primary hover:bg-primary/90 text-dark-bg font-bold py-3 rounded-xl transition-all duration-300 transform active:scale-95 shadow-lg shadow-primary/10 hover:shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed font-sans cursor-pointer flex items-center justify-center gap-2 group"
             >
-              <span className="uppercase tracking-widest text-sm">
+              <span className="uppercase tracking-widest text-xs font-semibold">
                 {loading ? 'Establishing connection...' : 'Initiate Session'}
               </span>
-              <LogIn size={16} className="transition-transform group-hover:translate-x-1" />
+              <LogIn size={14} className="transition-transform group-hover:translate-x-1" />
             </button>
           </form>
           
           {/* Account Request Info */}
-          <div className="text-center pt-4 border-t border-dark-border/40 space-y-2">
-            <p className="text-xs text-dark-muted font-sans">
+          <div className="text-center pt-3 border-t border-dark-border/40 space-y-1.5">
+            <p className="text-[11px] text-dark-muted font-sans">
               New user? Accounts are managed by the administrator.
             </p>
             <button 
               type="button"
               onClick={handleRequestAccess}
-              className="w-full bg-dark-bg/80 border border-dark-border hover:border-primary/50 text-white font-mono text-xs py-2.5 px-4 rounded-xl transition-all duration-300 transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full bg-dark-bg/80 border border-dark-border hover:border-primary/50 text-white font-mono text-[11px] py-2 px-3 rounded-xl transition-all duration-300 transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <Mail size={12} className="text-primary" />
+              <Mail size={11} className="text-primary" />
               <span>Request Account from Dev Kashyap Gajjar</span>
             </button>
           </div>
         </div>
 
-        {/* Android App Promotion Banner */}
-        <div className="mt-4 bg-dark-surface/40 backdrop-blur-md p-5 rounded-2xl border border-primary/25 shadow-2xl flex items-center justify-between gap-4 animate-pulse-gold w-full">
-          <div className="flex items-center gap-4 text-left">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
-              <Smartphone size={24} className="text-primary" />
+        {/* Compact Android App Promotion Banner */}
+        <div className="mt-3.5 bg-dark-surface/40 backdrop-blur-md p-4 rounded-xl border border-primary/20 shadow-2xl flex items-center justify-between gap-3 animate-pulse-gold w-full">
+          <div className="flex items-center gap-3 text-left">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
+              <Smartphone size={20} className="text-primary" />
             </div>
             <div>
-              <h3 className="text-primary font-bold text-sm tracking-tight flex items-center gap-1.5">
+              <h3 className="text-primary font-bold text-xs tracking-tight flex items-center gap-1.5">
                 Android App Beta v1
-                <span className="text-[9px] font-bold text-dark-bg bg-primary px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">Live</span>
+                <span className="text-[8px] font-bold text-dark-bg bg-primary px-1 rounded font-mono uppercase tracking-wider">Live</span>
               </h3>
-              <p className="text-dark-muted text-[11px] leading-tight mt-0.5">Mobile vault access now available for testing.</p>
+              <p className="text-dark-muted text-[10px] leading-tight mt-0.5">Mobile vault access now available for testing.</p>
             </div>
           </div>
           <a 
             href="https://github.com/GajjarKashyap/CodeValut/actions" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="bg-primary/15 border border-primary/40 text-primary text-[10px] font-bold py-2.5 px-4 rounded-lg uppercase tracking-widest hover:bg-primary hover:text-dark-bg transition-all duration-300 whitespace-nowrap cursor-pointer shadow-md shrink-0 text-center"
+            className="bg-primary/15 border border-primary/45 text-primary text-[9px] font-bold py-2 px-3.5 rounded-lg uppercase tracking-widest hover:bg-primary hover:text-dark-bg transition-all duration-300 whitespace-nowrap cursor-pointer shadow-md shrink-0 text-center"
           >
             Download APK
           </a>
         </div>
 
         {/* System Footer Accent */}
-        <div className="mt-8 flex items-center justify-center gap-2 text-[10px] font-mono text-dark-muted uppercase tracking-widest">
+        <div className="mt-4 flex items-center justify-center gap-2 text-[9px] font-mono text-dark-muted uppercase tracking-widest">
           <div className="size-1.5 bg-green-500 rounded-full animate-pulse"></div>
           <span>System Uplink Stable: 256-bit AES</span>
         </div>
 
         {/* Development Notice */}
-        <div className="mt-4 text-center">
-          <p className="text-[10px] font-mono text-dark-muted/60 uppercase tracking-wider">
+        <div className="mt-2 text-center">
+          <p className="text-[9px] font-mono text-dark-muted/50 uppercase tracking-wider">
             App under development — data is safe but UI/UX changes daily
           </p>
         </div>

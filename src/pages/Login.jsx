@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
@@ -12,6 +12,11 @@ export default function Login() {
   const { user } = useAuth();
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [copiedSection, setCopiedSection] = useState('');
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('codevault_theme') || 'original';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
 
   const handleRequestAccess = () => {
     setShowRequestModal(true);
@@ -84,7 +89,7 @@ export default function Login() {
         </div>
 
         {/* Glassmorphic Terminal Card (More Compact) */}
-        <div className="bg-dark-surface/60 backdrop-blur-md p-6 rounded-2xl border border-primary/20 shadow-2xl space-y-4 relative overflow-hidden group transition-all duration-300 hover:border-primary/30 w-full">
+        <div className="bg-dark-surface backdrop-blur-md p-6 rounded-2xl border border-primary/20 shadow-2xl space-y-4 relative overflow-hidden group transition-all duration-300 hover:border-primary/30 w-full">
           {/* Decorative Corner Accents */}
           <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary/30 rounded-tl-2xl pointer-events-none"></div>
           <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary/30 rounded-br-2xl pointer-events-none"></div>
@@ -103,7 +108,7 @@ export default function Login() {
           </div>
 
           <div className="text-left mb-3">
-            <h2 className="text-xl font-bold font-serif text-white mb-0.5">Secure Access</h2>
+            <h2 className="text-xl font-bold font-serif text-dark-text mb-0.5">Secure Access</h2>
             <p className="text-dark-muted font-mono text-[10px]">Enter credentials to decrypt session.</p>
           </div>
 
@@ -125,7 +130,7 @@ export default function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-dark-bg/60 border border-dark-border focus:border-primary/50 text-dark-text rounded-xl pl-12 pr-4 py-2.5 focus:outline-none transition-all font-sans placeholder-dark-muted text-xs"
+                  className="w-full bg-transparent border border-dark-border focus:border-primary/50 text-dark-text rounded-xl pl-12 pr-4 py-2.5 focus:outline-none transition-all font-sans placeholder-dark-muted text-xs"
                   placeholder="student1@codevault.edu"
                 />
               </div>
@@ -142,7 +147,7 @@ export default function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-dark-bg/60 border border-dark-border focus:border-primary/50 text-dark-text rounded-xl pl-12 pr-4 py-2.5 focus:outline-none transition-all font-sans placeholder-dark-muted text-xs"
+                  className="w-full bg-transparent border border-dark-border focus:border-primary/50 text-dark-text rounded-xl pl-12 pr-4 py-2.5 focus:outline-none transition-all font-sans placeholder-dark-muted text-xs"
                   placeholder="••••••••"
                 />
               </div>
@@ -168,7 +173,7 @@ export default function Login() {
             <button 
               type="button"
               onClick={handleRequestAccess}
-              className="w-full bg-dark-bg/80 border border-dark-border hover:border-primary/50 text-white font-mono text-[11px] py-2 px-3 rounded-xl transition-all duration-300 transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full bg-transparent border border-dark-border hover:border-primary/50 text-dark-text font-mono text-[11px] py-2 px-3 rounded-xl transition-all duration-300 transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Mail size={11} className="text-primary" />
               <span>Request Account from Dev Kashyap Gajjar</span>
@@ -177,7 +182,7 @@ export default function Login() {
         </div>
 
         {/* Compact Android App Promotion Banner */}
-        <div className="mt-3.5 bg-dark-surface/40 backdrop-blur-md p-4 rounded-xl border border-primary/20 shadow-2xl flex items-center justify-between gap-3 animate-pulse-gold w-full">
+        <div className="mt-3.5 bg-dark-surface backdrop-blur-md p-4 rounded-xl border border-primary/20 shadow-2xl flex items-center justify-between gap-3 animate-pulse-gold w-full">
           <div className="flex items-center gap-3 text-left">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
               <Smartphone size={20} className="text-primary" />
@@ -216,7 +221,7 @@ export default function Login() {
 
       {showRequestModal && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-dark-surface border border-primary/20 p-6 md:p-8 rounded-2xl max-w-lg w-full space-y-5 shadow-2xl relative">
+          <div className="bg-[#181818] border border-primary/20 p-6 md:p-8 rounded-2xl max-w-lg w-full space-y-5 shadow-2xl relative">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-dark-border pb-3">
               <h3 className="text-lg font-bold text-white font-serif flex items-center gap-2">
@@ -239,7 +244,7 @@ export default function Login() {
               {/* Email */}
               <div className="space-y-1">
                 <label className="block text-[10px] font-semibold text-dark-muted uppercase tracking-wider font-mono">Recipient Email</label>
-                <div className="flex items-center bg-dark-bg border border-dark-border rounded-xl p-2.5 gap-2">
+                <div className="flex items-center bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 gap-2">
                   <span className="text-white text-xs font-mono select-all truncate flex-1">kashayapgajjar71@gmail.com</span>
                   <button 
                     type="button" 
@@ -259,7 +264,7 @@ export default function Login() {
               {/* Subject */}
               <div className="space-y-1">
                 <label className="block text-[10px] font-semibold text-dark-muted uppercase tracking-wider font-mono">Subject</label>
-                <div className="flex items-center bg-dark-bg border border-dark-border rounded-xl p-2.5 gap-2">
+                <div className="flex items-center bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 gap-2">
                   <span className="text-white text-xs font-mono select-all truncate flex-1">CodeVault Account Request</span>
                   <button 
                     type="button" 
@@ -279,7 +284,7 @@ export default function Login() {
               {/* Body Template */}
               <div className="space-y-1">
                 <label className="block text-[10px] font-semibold text-dark-muted uppercase tracking-wider font-mono">Email Body Template</label>
-                <div className="relative bg-dark-bg border border-dark-border rounded-xl p-4">
+                <div className="relative bg-neutral-950 border border-neutral-800 rounded-xl p-4">
                   <pre className="text-white text-xs font-sans whitespace-pre-wrap leading-relaxed select-all overflow-y-auto max-h-[160px] pb-8 pr-2">{"Hi Kashyap,\n\nI would like to request a new student account on CodeVault.\n\nHere are my details:\n- Full Name: [Enter Your Name]\n- Roll Number / Student ID: [Enter ID]\n- Class / Batch: [Enter Class]\n- Preferred Login Email: [Enter Email]\n\nThank you!"}</pre>
                   <button 
                     type="button" 
@@ -288,7 +293,7 @@ export default function Login() {
                       setCopiedSection('body');
                       setTimeout(() => setCopiedSection(''), 2000);
                     }}
-                    className="absolute right-3 bottom-3 bg-dark-surface border border-dark-border hover:border-primary/50 text-xs text-primary hover:text-primary/80 font-mono flex items-center gap-1.5 px-3 py-1 rounded-lg cursor-pointer shadow-lg"
+                    className="absolute right-3 bottom-3 bg-neutral-900 border border-neutral-800 hover:border-primary/50 text-xs text-primary hover:text-primary/80 font-mono flex items-center gap-1.5 px-3 py-1 rounded-lg cursor-pointer shadow-lg"
                   >
                     {copiedSection === 'body' ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
                     {copiedSection === 'body' ? 'Template Copied!' : 'Copy Template'}

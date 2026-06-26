@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
-import { Coffee, Mail, Lock, Terminal, Check, Copy, Smartphone } from 'lucide-react';
+import { Coffee, Mail, Lock, Terminal, Check, Copy, Smartphone, Fingerprint, LogIn } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -12,7 +12,6 @@ export default function Login() {
   const { user } = useAuth();
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [copiedSection, setCopiedSection] = useState('');
-
 
   const handleRequestAccess = () => {
     setShowRequestModal(true);
@@ -40,6 +39,27 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-dark-bg flex items-center justify-center p-4 relative overflow-hidden bg-grid-pattern">
+      <style>{`
+        @keyframes scanline {
+          0% { bottom: 100%; }
+          100% { bottom: -100px; }
+        }
+        .scanline {
+          width: 100%;
+          height: 100px;
+          z-index: 5;
+          background: linear-gradient(0deg, rgba(200, 171, 126, 0) 0%, rgba(200, 171, 126, 0.03) 50%, rgba(200, 171, 126, 0) 100%);
+          opacity: 0.15;
+          position: absolute;
+          bottom: 100%;
+          animation: scanline 8s linear infinite;
+          pointer-events: none;
+        }
+      `}</style>
+
+      {/* Scanline decoration */}
+      <div className="scanline" />
+
       {/* Subtle Corner Ambient Glows */}
       <div className="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
@@ -47,20 +67,26 @@ export default function Login() {
       {/* Centered Golden Backlight Glow behind the login card */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] md:w-[450px] md:h-[450px] rounded-full bg-primary/10 blur-[100px] pointer-events-none" />
 
-      <div className="max-w-md w-full z-10">
-        <div className="text-center mb-8">
-          <div className="bg-primary/10 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-xl shadow-primary/5 animate-pulse">
+      <div className="max-w-md w-full z-10 flex flex-col items-center">
+        {/* Header Section */}
+        <div className="text-center mb-8 flex flex-col items-center">
+          <div className="bg-primary/10 w-20 h-20 rounded-2xl flex items-center justify-center mb-4 border border-primary/20 shadow-xl shadow-primary/5 animate-pulse">
             <Coffee size={40} className="text-primary" />
           </div>
-          <h1 className="text-4xl font-bold font-serif text-white mb-2 tracking-tight">CodeVault</h1>
-          <p className="text-dark-muted font-sans text-sm">Secure practical notebook for college labs</p>
-          <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary font-mono text-xs uppercase tracking-wider font-semibold">
-            Developed by Kashyap Gajjar
+          <h1 className="text-5xl font-bold font-serif text-primary mb-2 tracking-tight">CodeVault</h1>
+          <div className="px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 mt-1 shadow-sm">
+            <span className="font-mono text-[10px] md:text-xs uppercase tracking-widest text-primary font-semibold">
+              Developed by Kashyap Gajjar
+            </span>
           </div>
         </div>
 
         {/* Glassmorphic Terminal Card */}
-        <div className="bg-dark-surface/60 backdrop-blur-md p-8 rounded-2xl border border-primary/20 shadow-2xl space-y-6">
+        <div className="bg-dark-surface/60 backdrop-blur-md p-8 rounded-2xl border border-primary/20 shadow-2xl space-y-6 relative overflow-hidden group transition-all duration-300 hover:border-primary/30 w-full">
+          {/* Decorative Corner Accents */}
+          <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary/30 rounded-tl-2xl pointer-events-none"></div>
+          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary/30 rounded-br-2xl pointer-events-none"></div>
+
           {/* Terminal Window Header Decoration */}
           <div className="flex items-center justify-between border-b border-dark-border pb-4 -mt-2">
             <div className="flex items-center space-x-2 text-xs font-mono text-dark-muted">
@@ -74,32 +100,37 @@ export default function Login() {
             </div>
           </div>
 
+          <div className="text-left mb-6">
+            <h2 className="text-2xl font-bold font-serif text-white mb-1">Secure Access</h2>
+            <p className="text-dark-muted font-mono text-[11px]">Enter credentials to decrypt session.</p>
+          </div>
+
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl text-sm font-sans">
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl text-sm font-sans text-left">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-5 text-left">
             <div>
-              <label className="block text-sm font-medium text-dark-muted mb-2 font-sans">Email Address</label>
+              <label className="block text-[10px] font-semibold font-mono uppercase tracking-widest text-primary mb-2">Access Identity</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-muted">
-                  <Mail size={18} />
+                  <Fingerprint size={18} />
                 </span>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-dark-bg border border-dark-border focus:border-primary/50 text-dark-text rounded-xl pl-12 pr-4 py-3 focus:outline-none transition-all font-sans placeholder-dark-muted"
+                  className="w-full bg-dark-bg/60 border border-dark-border focus:border-primary/50 text-dark-text rounded-xl pl-12 pr-4 py-3 focus:outline-none transition-all font-sans placeholder-dark-muted text-sm"
                   placeholder="student1@codevault.edu"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-dark-muted mb-2 font-sans">Password</label>
+              <label className="block text-[10px] font-semibold font-mono uppercase tracking-widest text-primary mb-2">Security Protocol</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-muted">
                   <Lock size={18} />
@@ -109,7 +140,7 @@ export default function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-dark-bg border border-dark-border focus:border-primary/50 text-dark-text rounded-xl pl-12 pr-4 py-3 focus:outline-none transition-all font-sans placeholder-dark-muted"
+                  className="w-full bg-dark-bg/60 border border-dark-border focus:border-primary/50 text-dark-text rounded-xl pl-12 pr-4 py-3 focus:outline-none transition-all font-sans placeholder-dark-muted text-sm"
                   placeholder="••••••••"
                 />
               </div>
@@ -118,21 +149,24 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary hover:bg-primary/90 text-dark-bg font-bold py-3 rounded-xl transition-all duration-300 transform active:scale-95 shadow-lg shadow-primary/10 hover:shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed font-sans cursor-pointer"
+              className="w-full bg-primary hover:bg-primary/90 text-dark-bg font-bold py-3.5 rounded-xl transition-all duration-300 transform active:scale-95 shadow-lg shadow-primary/10 hover:shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed font-sans cursor-pointer flex items-center justify-center gap-2 group"
             >
-              {loading ? 'Establishing connection...' : 'Access Vault'}
+              <span className="uppercase tracking-widest text-sm">
+                {loading ? 'Establishing connection...' : 'Initiate Session'}
+              </span>
+              <LogIn size={16} className="transition-transform group-hover:translate-x-1" />
             </button>
           </form>
           
           {/* Account Request Info */}
-          <div className="text-center pt-3 border-t border-dark-border/40 space-y-2">
+          <div className="text-center pt-4 border-t border-dark-border/40 space-y-2">
             <p className="text-xs text-dark-muted font-sans">
               New user? Accounts are managed by the administrator.
             </p>
             <button 
               type="button"
               onClick={handleRequestAccess}
-              className="w-full bg-dark-bg border border-dark-border hover:border-primary/50 text-white font-mono text-xs py-2.5 px-4 rounded-xl transition-all duration-300 transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full bg-dark-bg/80 border border-dark-border hover:border-primary/50 text-white font-mono text-xs py-2.5 px-4 rounded-xl transition-all duration-300 transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Mail size={12} className="text-primary" />
               <span>Request Account from Dev Kashyap Gajjar</span>
@@ -141,24 +175,24 @@ export default function Login() {
         </div>
 
         {/* Android App Promotion Banner */}
-        <div className="mt-4 bg-dark-surface/40 backdrop-blur-md p-4 rounded-xl border border-primary/10 shadow-lg flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-2 rounded-lg text-primary border border-primary/20 shrink-0">
-              <Smartphone size={18} />
+        <div className="mt-4 bg-dark-surface/40 backdrop-blur-md p-5 rounded-2xl border border-primary/25 shadow-2xl flex items-center justify-between gap-4 animate-pulse-gold w-full">
+          <div className="flex items-center gap-4 text-left">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
+              <Smartphone size={24} className="text-primary" />
             </div>
-            <div className="text-left">
-              <h4 className="text-xs font-bold text-white font-sans flex items-center gap-1.5">
-                Android App Available!
-                <span className="text-[9px] font-bold text-dark-bg bg-primary px-1 rounded font-mono uppercase tracking-wider">New</span>
-              </h4>
-              <p className="text-[10px] text-dark-muted font-sans mt-0.5">Get the native mobile app for labs.</p>
+            <div>
+              <h3 className="text-primary font-bold text-sm tracking-tight flex items-center gap-1.5">
+                Android App Beta v1
+                <span className="text-[9px] font-bold text-dark-bg bg-primary px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">Live</span>
+              </h3>
+              <p className="text-dark-muted text-[11px] leading-tight mt-0.5">Mobile vault access now available for testing.</p>
             </div>
           </div>
           <a 
             href="https://github.com/GajjarKashyap/CodeValut/actions" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="bg-primary hover:bg-primary/95 text-dark-bg font-sans font-bold text-xs px-3.5 py-1.5 rounded-lg transition-all active:scale-95 cursor-pointer shadow-md shrink-0"
+            className="bg-primary/15 border border-primary/40 text-primary text-[10px] font-bold py-2.5 px-4 rounded-lg uppercase tracking-widest hover:bg-primary hover:text-dark-bg transition-all duration-300 whitespace-nowrap cursor-pointer shadow-md shrink-0 text-center"
           >
             Download APK
           </a>
@@ -166,8 +200,8 @@ export default function Login() {
 
         {/* System Footer Accent */}
         <div className="mt-8 flex items-center justify-center gap-2 text-[10px] font-mono text-dark-muted uppercase tracking-widest">
-          <div className="size-1.5 bg-primary rounded-full animate-pulse"></div>
-          <span>SECURE VAULT SESSION ACTIVE</span>
+          <div className="size-1.5 bg-green-500 rounded-full animate-pulse"></div>
+          <span>System Uplink Stable: 256-bit AES</span>
         </div>
 
         {/* Development Notice */}
@@ -180,7 +214,7 @@ export default function Login() {
 
       {showRequestModal && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-dark-surface border border-primary/20 p-6 md:p-8 rounded-2xl max-w-lg w-full space-y-5 shadow-2xl relative animate-fadeIn">
+          <div className="bg-dark-surface border border-primary/20 p-6 md:p-8 rounded-2xl max-w-lg w-full space-y-5 shadow-2xl relative">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-dark-border pb-3">
               <h3 className="text-lg font-bold text-white font-serif flex items-center gap-2">
@@ -194,7 +228,7 @@ export default function Login() {
               </button>
             </div>
 
-            <p className="text-xs text-dark-muted leading-relaxed font-sans">
+            <p className="text-xs text-dark-muted leading-relaxed font-sans text-left">
               Copy the details below and send them to the developer to get your account created.
             </p>
 

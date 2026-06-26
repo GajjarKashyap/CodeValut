@@ -12,6 +12,7 @@ import Archive from './pages/Archive';
 import ChatDashboard from './pages/ChatDashboard';
 import ChatRoom from './pages/ChatRoom';
 import NotFound from './pages/NotFound';
+import DownloadApp from './pages/DownloadApp';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -33,6 +34,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/download" element={<DownloadApp />} />
           <Route path="/share/:shareId" element={<Share />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />

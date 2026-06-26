@@ -49,6 +49,7 @@ export default function ChatRoom() {
     fetchGroupDetails();
     fetchMessages();
     
+    // 1. Messages Channel
     const channel = supabase
       .channel(`chat_room_${chatId}`)
       .on('postgres_changes', { 
@@ -56,19 +57,26 @@ export default function ChatRoom() {
         schema: 'public', 
         table: 'group_messages',
         filter: `group_id=eq.${chatId}`
-      }, async (payload) => {
+      }, (payload) => {
         let newMsg = payload.new;
         setMessages(prev => {
           if (prev.some(m => m.id === newMsg.id)) return prev;
+          if (newMsg.session_id) {
+            fetchMessages();
+            return prev;
+          }
           return [...prev, newMsg];
         });
-        if (newMsg.session_id) {
+        setTimeout(scrollToBottom, 100);
+      })
+      .subscribe((status) => {
+        if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          console.log('Channel disconnected, attempting to reconnect...');
           fetchMessages();
         }
-        setTimeout(scrollToBottom, 50);
-      })
-      .subscribe();
+      });
 
+    // 2. Presence Channel
     const pChannel = supabase.channel(`room_presence_${chatId}`, {
       config: {
         presence: {
@@ -93,12 +101,13 @@ export default function ChatRoom() {
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          await pChannel.track({ user_email: user.email, typing: false });
+          await pChannel.track({ user_email: user.email, typing: false }).catch(() => {});
         }
       });
       
     presenceChannelRef.current = pChannel;
 
+    // 3. Reactions Channel
     const reactionsChannel = supabase
       .channel(`chat_reactions_${chatId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, () => {
@@ -106,12 +115,20 @@ export default function ChatRoom() {
       })
       .subscribe();
       
+    // Periodic fallback fetch just in case the browser suspends the WebSocket when tab is hidden
+    const fallbackInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchMessages();
+      }
+    }, 15000);
+
     return () => {
+      clearInterval(fallbackInterval);
       supabase.removeChannel(channel);
       supabase.removeChannel(reactionsChannel);
       supabase.removeChannel(pChannel);
     };
-  }, [chatId]);
+  }, [chatId, user]);
 
   useEffect(() => {
     scrollToBottom();
@@ -186,7 +203,9 @@ export default function ChatRoom() {
   const handleTyping = async () => {
     if (!isTypingRef.current && presenceChannelRef.current) {
       isTypingRef.current = true;
-      await presenceChannelRef.current.track({ user_email: user.email, typing: true }).catch(() => {});
+      try {
+        await presenceChannelRef.current.track({ user_email: user.email, typing: true });
+      } catch (err) { /* ignore */ }
     }
     
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
@@ -194,9 +213,11 @@ export default function ChatRoom() {
     typingTimeoutRef.current = setTimeout(async () => {
       isTypingRef.current = false;
       if (presenceChannelRef.current) {
-        await presenceChannelRef.current.track({ user_email: user.email, typing: false }).catch(() => {});
+        try {
+          await presenceChannelRef.current.track({ user_email: user.email, typing: false });
+        } catch (err) { /* ignore */ }
       }
-    }, 1500);
+    }, 2000);
   };
 
   const handleSendMessage = async (e) => {

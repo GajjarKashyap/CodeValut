@@ -104,9 +104,19 @@ export default function DownloadApp() {
           <ArrowLeft size={16} />
           <span>[BACK_TO_LOGIN]</span>
         </button>
-        <div className="flex items-center gap-2">
-          <Coffee size={18} className="text-primary animate-pulse" />
-          <span className="font-serif font-bold text-sm tracking-wide text-primary">CodeVault Hub</span>
+        <div className="flex items-center gap-4">
+          <a
+            href="https://github.com/GajjarKashyap/CodeValut"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-dark-muted hover:text-primary transition-colors font-mono text-xs cursor-pointer flex items-center gap-1"
+          >
+            <span>[VIEW_ON_GITHUB]</span>
+          </a>
+          <div className="flex items-center gap-2 border-l border-dark-border pl-4">
+            <Coffee size={18} className="text-primary animate-pulse" />
+            <span className="font-serif font-bold text-sm tracking-wide text-primary">CodeVault Hub</span>
+          </div>
         </div>
       </header>
 
@@ -129,7 +139,15 @@ export default function DownloadApp() {
                 <h1 className="text-2xl md:text-3xl font-bold font-serif text-dark-text">CodeVault Mobile</h1>
                 <span className="text-[9px] font-mono font-bold bg-green-500/10 border border-green-500/20 text-green-500 px-2 py-0.5 rounded-full uppercase tracking-wider">Beta v1</span>
               </div>
-              <p className="text-primary text-xs font-mono font-semibold">GajjarKashyap/CodeValut Android Client</p>
+              <a 
+                href="https://github.com/GajjarKashyap/CodeValut" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary text-xs font-mono font-semibold hover:underline inline-flex items-center gap-1 cursor-pointer"
+              >
+                <span>GajjarKashyap/CodeValut Android Client</span>
+                <span className="text-[9px]">↗</span>
+              </a>
               <p className="text-dark-muted text-xs font-sans mt-2 leading-relaxed">
                 Compile lab assignments, view practical lists, and chat in real-time right from your mobile device.
               </p>
@@ -167,13 +185,13 @@ export default function DownloadApp() {
             <div className="text-[10px] text-dark-muted">{totalReviewsCount} Reviews</div>
           </div>
           <div className="space-y-1 border-l border-dark-border/40">
-            <div className="text-xs font-mono text-dark-muted uppercase tracking-wider">Active Installs</div>
-            <div className="text-lg font-bold text-dark-text font-mono">500+</div>
-            <div className="text-[10px] text-dark-muted">Verified Students</div>
+            <div className="text-xs font-mono text-dark-muted uppercase tracking-wider">Security</div>
+            <div className="text-lg font-bold text-dark-text font-sans">Safe & Secure</div>
+            <div className="text-[10px] text-dark-muted">Verified Build Sandbox</div>
           </div>
           <div className="space-y-1 border-l border-dark-border/40">
             <div className="text-xs font-mono text-dark-muted uppercase tracking-wider">File Size</div>
-            <div className="text-lg font-bold text-dark-text font-mono">7.4 MB</div>
+            <div className="text-lg font-bold text-dark-text font-mono">5.4 MB</div>
             <div className="text-[10px] text-dark-muted">Compressed Binary</div>
           </div>
           <div className="space-y-1 border-l border-dark-border/40 col-span-2 md:col-span-1 border-t md:border-t-0 border-dark-border/40 pt-2 md:pt-0">

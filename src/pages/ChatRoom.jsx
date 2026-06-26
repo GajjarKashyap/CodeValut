@@ -18,6 +18,7 @@ export default function ChatRoom() {
   const [replyingTo, setReplyingTo] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(null);
   const [typingUsers, setTypingUsers] = useState([]);
+  const [userProfiles, setUserProfiles] = useState({});
   const presenceChannelRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const isTypingRef = useRef(false);
@@ -150,7 +151,22 @@ export default function ChatRoom() {
     }
   };
 
-  const fetchMessages = async () => {
+  const fetchUserProfiles = async () => {
+      try {
+        const { data } = await supabase.from('user_activity').select('user_id, username, email');
+        if (data) {
+          const map = {};
+          data.forEach(u => {
+            map[u.email] = u; // map by email since typingUsers uses email
+            map[u.user_id] = u; // map by id for messages
+          });
+          setUserProfiles(map);
+        }
+      } catch (err) { console.error(err); }
+    };
+    fetchUserProfiles();
+
+    const fetchMessages = async () => {
     try {
       const { data, error } = await supabase
         .from('group_messages')
@@ -665,8 +681,8 @@ export default function ChatRoom() {
                 </div>
                 <span className="text-[10px] text-dark-muted font-mono tracking-widest italic truncate max-w-[200px]">
                   {typingUsers.length === 1 
-                    ? `${typingUsers[0].split('@')[0]} is typing...`
-                    : `${typingUsers[0].split('@')[0]} & ${typingUsers.length - 1} other${typingUsers.length > 2 ? 's' : ''} typing...`}
+                    ? `${userProfiles[typingUsers[0]]?.username || typingUsers[0].split('@')[0]} is typing...`
+                    : `${userProfiles[typingUsers[0]]?.username || typingUsers[0].split('@')[0]} & ${typingUsers.length - 1} other${typingUsers.length > 2 ? 's' : ''} typing...`}
                 </span>
               </div>
             </div>

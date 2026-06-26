@@ -1,0 +1,99 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root, [data-theme='original'] {
+    --color-primary: #c8ab7e;
+    --color-bg: #121212;
+    --color-surface: #1e1e1e;
+    --color-border: #2d2d2d;
+    --color-text: #e0e0e0;
+    --color-muted: #9e9e9e;
+  }
+  
+  [data-theme='ocean'] {
+    --color-primary: #3b82f6;
+    --color-bg: #0f172a;
+    --color-surface: #1e293b;
+    --color-border: #334155;
+    --color-text: #f8fafc;
+    --color-muted: #94a3b8;
+  }
+  
+  [data-theme='emerald'] {
+    --color-primary: #10b981;
+    --color-bg: #022c22;
+    --color-surface: #064e3b;
+    --color-border: #065f46;
+    --color-text: #ecfdf5;
+    --color-muted: #6ee7b7;
+  }
+  
+  [data-theme='pearl'] {
+    --color-primary: #8b5cf6;
+    --color-bg: #f8fafc;
+    --color-surface: #ffffff;
+    --color-border: #e2e8f0;
+    --color-text: #0f172a;
+    --color-muted: #64748b;
+  }
+}
+
+
+@layer base {
+  body {
+    @apply bg-dark-bg text-dark-text antialiased;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar-thumb { background: #2d2d2d; border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: #c8ab7e33; }
+
+/* Monaco editor background */
+.monaco-editor, .monaco-editor-background, .monaco-editor .inputarea.ime-input {
+  background-color: transparent !important;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(200, 171, 126, 0); }
+  50% { box-shadow: 0 0 0 6px rgba(200, 171, 126, 0.08); }
+}
+
+.animate-fadeIn { animation: fadeIn 0.25s ease-out forwards; }
+.animate-slideInRight { animation: slideInRight 0.2s ease-out forwards; }
+.animate-pulse-gold { animation: pulse-gold 2s ease-in-out infinite; }
+
+/* Focus ring */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #c8ab7e !important;
+  box-shadow: 0 0 0 3px rgba(200, 171, 126, 0.1);
+}
+
+/* Selection color */
+::selection {
+  background: rgba(200, 171, 126, 0.25);
+}
+
+/* Tech Grid Pattern */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, rgba(200, 171, 126, 0.015) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(200, 171, 126, 0.015) 1px, transparent 1px);
+}

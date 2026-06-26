@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CodeVault</string>
+    <string name="title_activity_main">CodeVault</string>
+    <string name="package_name">com.gajjarkashyap.codevault</string>
+    <string name="custom_url_scheme">com.gajjarkashyap.codevault</string>
+</resources>

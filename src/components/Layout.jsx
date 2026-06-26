@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Home, Coffee, Database, Search, Star, LogOut, PlusSquare, ShieldCheck, Zap, Archive, MessageCircle } from 'lucide-react';
+import { Home, Coffee, Database, Search, Star, LogOut, PlusSquare, ShieldCheck, Zap, Archive, Settings, MessageCircle } from 'lucide-react';
 
 export default function Layout() {
   const { user } = useAuth();
@@ -22,6 +22,12 @@ export default function Layout() {
     }
   }, [location.pathname, user]);
   const isAdmin = user?.email?.trim()?.toLowerCase() === 'admin@admin.com';
+
+  
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('codevault_theme') || 'original';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

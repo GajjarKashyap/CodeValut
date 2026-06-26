@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Settings from './pages/Settings';
 import SessionForm from './pages/SessionForm';
 import SessionList from './pages/SessionList';
 import Search from './pages/Search';
@@ -43,6 +44,7 @@ function App() {
             <Route path="favorites" element={<SessionList filter="favorites" />} />
             <Route path="search" element={<Search />} />
             <Route path="archive" element={<Archive />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

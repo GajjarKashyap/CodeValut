@@ -8,13 +8,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#c8ab7e', // Kashyap's Portfolio Gold
+        primary: 'var(--color-primary)',
         dark: {
-          bg: '#121212',
-          surface: '#1e1e1e',
-          border: '#2d2d2d',
-          text: '#e0e0e0',
-          muted: '#9e9e9e'
+          bg: 'var(--color-bg)',
+          surface: 'var(--color-surface)',
+          border: 'var(--color-border)',
+          text: 'var(--color-text)',
+          muted: 'var(--color-muted)'
         }
       },
       fontFamily: {

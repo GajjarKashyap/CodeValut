@@ -89,7 +89,7 @@ export default function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-dark-bg/80 border border-dark-border focus:border-primary/50 text-white rounded-xl pl-12 pr-4 py-3 focus:outline-none transition-all font-sans placeholder-dark-border"
+                  className="w-full bg-dark-bg border border-dark-border focus:border-primary/50 text-dark-text rounded-xl pl-12 pr-4 py-3 focus:outline-none transition-all font-sans placeholder-dark-muted"
                   placeholder="student1@codevault.edu"
                 />
               </div>
@@ -106,7 +106,7 @@ export default function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-dark-bg/80 border border-dark-border focus:border-primary/50 text-white rounded-xl pl-12 pr-4 py-3 focus:outline-none transition-all font-sans placeholder-dark-border"
+                  className="w-full bg-dark-bg border border-dark-border focus:border-primary/50 text-dark-text rounded-xl pl-12 pr-4 py-3 focus:outline-none transition-all font-sans placeholder-dark-muted"
                   placeholder="••••••••"
                 />
               </div>

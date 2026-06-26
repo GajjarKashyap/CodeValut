@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [adminUsersActivity, setAdminUsersActivity] = useState([]);
   const [selectedStudentFilter, setSelectedStudentFilter] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   const isAdmin = user?.email?.trim()?.toLowerCase() === 'admin@admin.com';
 
@@ -78,8 +79,19 @@ export default function Dashboard() {
     };
 
   useEffect(() => {
-    if (user) fetchDashboardData();
+    if (user) {
+      fetchDashboardData();
+      const hasSeenUpdate = localStorage.getItem('codevault_update_v1');
+      if (!hasSeenUpdate) {
+        setShowUpdateModal(true);
+      }
+    }
   }, [user]);
+
+  const closeUpdateModal = () => {
+    localStorage.setItem('codevault_update_v1', 'true');
+    setShowUpdateModal(false);
+  };
 
   if (loading) return (
     <div className="flex items-center justify-center py-20">
@@ -108,6 +120,55 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 max-w-6xl">
+
+      {/* Update Modal */}
+      {showUpdateModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-dark-surface border border-primary/30 max-w-md w-full rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-primary/10 p-5 border-b border-primary/20 flex items-center gap-3">
+              <div className="bg-primary p-2 rounded-lg text-dark-bg">
+                <ShieldCheck size={20} />
+              </div>
+              <div>
+                <h3 className="text-white font-bold font-serif text-lg">CodeVault Updates!</h3>
+                <p className="text-primary text-xs font-mono">Fresh Start</p>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-5">
+              <div className="flex gap-4">
+                <div className="text-green-400 mt-1 shrink-0"><Database size={20} /></div>
+                <div>
+                  <h4 className="text-white font-bold text-sm mb-1 font-sans">Fresh Start & 100% Secured</h4>
+                  <p className="text-dark-muted text-sm font-sans leading-relaxed">
+                    During a recent update, some old data was accidentally deleted. But the good news is we are back with a completely fresh start, and your data is now <strong className="text-white">100% secured</strong>!
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="text-primary mt-1 shrink-0"><Users size={20} /></div>
+                <div>
+                  <h4 className="text-white font-bold text-sm mb-1 font-sans">New Feature: Usernames!</h4>
+                  <p className="text-dark-muted text-sm font-sans leading-relaxed">
+                    You can now set your own Username from the Chat section! Once you set it, other users will see your chosen name instead of your email address when chatting.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-dark-border bg-dark-bg/50 flex justify-end">
+              <button
+                onClick={closeUpdateModal}
+                className="bg-primary hover:bg-primary/90 text-dark-bg font-bold px-6 py-2 rounded-lg transition-all active:scale-95 text-sm"
+              >
+                Got it, thanks!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

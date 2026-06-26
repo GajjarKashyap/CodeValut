@@ -42,6 +42,7 @@ export default function Layout() {
     { to: "/search", icon: <Search size={20} />, label: "Search" },
     { to: "/favorites", icon: <Star size={20} />, label: "Favorites" },
     { to: "/archive", icon: <Archive size={20} />, label: "Archive" },
+    { to: "/settings", icon: <Settings size={20} />, label: "Settings" },
   ];
 
   const userInitial = user?.email?.charAt(0).toUpperCase() || 'U';

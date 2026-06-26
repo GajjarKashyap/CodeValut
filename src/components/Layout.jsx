@@ -15,6 +15,14 @@ export default function Layout() {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
+  
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+
   const fetchProfileAndNotifications = async () => {
     if (!user) return;
     
@@ -47,6 +55,12 @@ export default function Layout() {
       const channel = supabase.channel('notifications_channel')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, (payload) => {
           setNotifications(prev => [payload.new, ...prev]);
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('CodeVault', {
+              body: payload.new.message,
+              icon: '/CodeValut/favicon.svg'
+            });
+          }
         })
         .subscribe();
         

@@ -226,7 +226,7 @@ export default function Layout() {
 
       {/* Mobile Bottom Nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-dark-surface border-t border-dark-border flex items-center justify-around px-2 z-50">
-        {navLinks.slice(0,5).map((link) => (
+        {navLinks.filter(link => ['Dashboard', 'Chat', 'Search', 'Settings'].includes(link.label)).map((link) => (
           <NavLink
             key={link.to}
             to={link.to}

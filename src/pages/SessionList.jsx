@@ -1,4 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,6 +17,9 @@ export default function SessionList({ filter }) {
   const [hasMore, setHasMore] = useState(true);
   const [copiedId, setCopiedId] = useState(null);
   const [error, setError] = useState(null);
+  const [startY, setStartY] = useState(0);
+  const [refreshDist, setRefreshDist] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const isAdmin = user?.email?.trim()?.toLowerCase() === 'admin@admin.com';
   const displayTitle = filter === 'favorites' ? 'Favorites' : filter === 'shared' ? 'Shared Sessions' : subject === 'java' ? 'Java Sessions' : 'MongoDB Sessions';
@@ -106,6 +111,21 @@ export default function SessionList({ filter }) {
   const toggleFavorite = async (id, currentStatus, e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Offline support
+    if (!navigator.onLine) {
+      const queue = JSON.parse(localStorage.getItem('codevault_offline_queue') || '[]');
+      queue.push({ id, type: 'favorite', status: !currentStatus });
+      localStorage.setItem('codevault_offline_queue', JSON.stringify(queue));
+
+      if (filter === 'favorites' && currentStatus) {
+        setSessions(sessions.filter(s => s.id !== id));
+      } else {
+        setSessions(sessions.map(s => s.id === id ? { ...s, is_favorite: !currentStatus } : s));
+      }
+      return;
+    }
+
     const { error } = await supabase.from('sessions').update({ is_favorite: !currentStatus }).eq('id', id);
     if (!error) {
       if (filter === 'favorites' && currentStatus) {
@@ -187,6 +207,15 @@ export default function SessionList({ filter }) {
     e.preventDefault();
     e.stopPropagation();
     if (window.confirm('Archive this session? You can restore it later.')) {
+      // Offline support
+      if (!navigator.onLine) {
+        const queue = JSON.parse(localStorage.getItem('codevault_offline_queue') || '[]');
+        queue.push({ id, type: 'archive', status: true });
+        localStorage.setItem('codevault_offline_queue', JSON.stringify(queue));
+        setSessions(sessions.filter(s => s.id !== id));
+        return;
+      }
+
       const { error } = await supabase.from('sessions').update({ is_archived: true }).eq('id', id);
       if (!error) setSessions(sessions.filter(s => s.id !== id));
     }
@@ -201,8 +230,61 @@ export default function SessionList({ filter }) {
     </div>
   );
 
+  const handleTouchStart = (e) => {
+    const container = document.getElementById('session-list-container');
+    if (container && container.scrollTop === 0) {
+      setStartY(e.touches[0].clientY);
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (startY === 0) return;
+    const currentY = e.touches[0].clientY;
+    const dist = currentY - startY;
+    if (dist > 0) {
+      setRefreshDist(Math.min(dist, 100));
+    }
+  };
+
+  const handleTouchEnd = async () => {
+    if (refreshDist > 70) {
+      setIsRefreshing(true);
+      try {
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const enableHaptics = localStorage.getItem('codevault_flag_enable_haptics') !== 'false';
+        if (!prefersReduced && enableHaptics && Capacitor.isNativePlatform()) {
+          try {
+            await Haptics.impact({ style: ImpactStyle.Light });
+          } catch (e) {}
+        }
+      } catch (e) {}
+
+      await fetchSessions(true);
+      setIsRefreshing(false);
+    }
+    setStartY(0);
+    setRefreshDist(0);
+  };
+
   return (
-    <div className="max-w-5xl mx-auto pb-10">
+    <div 
+      id="session-list-container"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      className="max-w-5xl mx-auto pb-10 overflow-y-auto"
+    >
+      {refreshDist > 20 && (
+        <div className="w-full flex justify-center py-2 text-primary font-mono text-xs animate-pulse">
+          {refreshDist > 70 ? '🟢 Release to refresh...' : '👇 Pull down to refresh...'}
+        </div>
+      )}
+      {isRefreshing && (
+        <div className="w-full flex justify-center py-2 text-primary font-mono text-xs animate-spin">
+          🔄 Refreshing data...
+        </div>
+      )}
+
       {error && (
         <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-xs font-sans mb-5">
           {error}

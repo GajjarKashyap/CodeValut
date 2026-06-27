@@ -79,9 +79,13 @@ export default function SessionForm() {
   useEffect(() => {
     if (!loading) {
       const timer = setTimeout(() => {
-        const { is_shared, share_id, user_id, user_email, created_at, updated_at, ...draftData } = formData;
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(draftData));
-        setSaveStatus('Draft saved locally');
+        try {
+          const { is_shared, share_id, user_id, user_email, created_at, updated_at, ...draftData } = formData;
+          localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...draftData, timestamp: Date.now() }));
+          setSaveStatus('Draft saved locally');
+        } catch (e) {
+          console.warn('Failed to save draft:', e);
+        }
       }, 2000);
       return () => clearTimeout(timer);
     }

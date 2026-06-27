@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import Editor from '@monaco-editor/react';
 import { Coffee, Database, Copy, Download, Globe, AlertCircle, Check, Tag, User, Calendar, Clock, Mail } from 'lucide-react';
@@ -7,10 +8,12 @@ import { formatDistanceToNow } from 'date-fns';
 
 export default function Share() {
   const { shareId } = useParams();
+  const { user } = useAuth();
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copiedSection, setCopiedSection] = useState('');
   const [showRequestModal, setShowRequestModal] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const [useSimpleEditor, setUseSimpleEditor] = useState(
     localStorage.getItem('codevault_editor_mode') === 'simple'
   );
@@ -39,12 +42,25 @@ export default function Share() {
       try {
         const { data, error } = await supabase
           .from('sessions')
-          .select('id, title, subject, topic, aim, code, output, notes, tags, is_shared, share_id, updated_at')
+          .select('id, title, subject, topic, aim, code, output, notes, tags, share_mode, is_blocked, share_id, updated_at, created_at, user_email, view_count, shared_at')
           .eq('share_id', shareId)
           .single();
 
         if (error) throw error;
         setSession(data);
+
+        // View count rate limiting (cache for 24h)
+        if (data && !data.is_blocked && data.share_mode !== 'private') {
+          const viewedSessions = JSON.parse(localStorage.getItem('codevault_viewed_sessions') || '{}');
+          const lastViewed = viewedSessions[data.id];
+          const now = Date.now();
+          const oneDay = 24 * 60 * 60 * 1000;
+          if (!lastViewed || (now - lastViewed > oneDay)) {
+            await supabase.rpc('increment_session_views', { session_id: data.id });
+            viewedSessions[data.id] = now;
+            localStorage.setItem('codevault_viewed_sessions', JSON.stringify(viewedSessions));
+          }
+        }
       } catch (err) {
         console.error('Error fetching shared session:', err);
       } finally {
@@ -59,6 +75,51 @@ export default function Share() {
     navigator.clipboard.writeText(text);
     setCopiedSection(sectionName);
     setTimeout(() => setCopiedSection(''), 2000);
+  };
+
+  const handleReportSession = async () => {
+    if (!user) {
+      alert('You must be signed in to report a session.');
+      return;
+    }
+
+    if (window.confirm('Report this session as inappropriate? It will be flagged for admin review.')) {
+      setReporting(true);
+      try {
+        const { data, error } = await supabase.rpc('report_session_secure', {
+          session_id: session.id,
+          reporter_id: user.id
+        });
+
+        if (error) throw error;
+
+        if (data === true) {
+          alert('This session has been reported. Admins will review the content shortly.');
+        } else {
+          alert('You have already reported this session.');
+        }
+      } catch (err) {
+        console.error('Error reporting session:', err.message);
+        alert('Failed to submit report. Please try again.');
+      } finally {
+        setReporting(false);
+      }
+    }
+  };
+
+  const getDisplayName = (session) => {
+    if (session.user_email) {
+      const parts = session.user_email.split('@');
+      if (parts.length === 2) {
+        const [local, domain] = parts;
+        const maskedLocal = local.length > 2 
+          ? `${local.slice(0, 2)}***${local.slice(-1)}` 
+          : `${local[0]}***`;
+        return `${maskedLocal}@${domain}`;
+      }
+      return session.user_email;
+    }
+    return 'Anonymous Student';
   };
 
   const toggleEditorMode = () => {
@@ -107,16 +168,19 @@ export default function Share() {
     );
   }
 
-  if (!session || !session.is_shared) {
+  const isPrivate = !session || session.share_mode === 'private' || session.is_blocked;
+  if (isPrivate) {
     return (
       <div className="min-h-screen bg-dark-bg text-white flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-6 bg-dark-surface border border-dark-border p-8 rounded-2xl shadow-xl">
           <div className="bg-red-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-red-500">
             <AlertCircle size={32} />
           </div>
-          <h1 className="text-2xl font-bold font-serif">Private Session</h1>
+          <h1 className="text-2xl font-bold font-serif">Session Unavailable</h1>
           <p className="text-dark-muted text-sm font-sans">
-            This session is private or the share link has expired. The owner needs to toggle "Share to Web" to make it accessible.
+            {session?.is_blocked 
+              ? 'This session has been blocked by administrators for violating moderation policies.' 
+              : 'This session is private, deleted, or the share link has expired.'}
           </p>
         </div>
       </div>
@@ -187,12 +251,12 @@ export default function Share() {
           </div>
 
           {/* Metadata Bar */}
-          <div className="bg-dark-bg/50 border border-dark-border rounded-xl p-4 flex flex-wrap gap-x-8 gap-y-2 text-sm font-sans">
+          <div className="bg-dark-bg/50 border border-dark-border rounded-xl p-4 flex flex-wrap gap-x-6 gap-y-2 text-sm font-sans">
             <div className="flex items-center gap-2">
               <User size={14} className="text-primary" />
               <span className="text-dark-muted">Created by:</span>
               <span className="text-white font-mono bg-dark-surface px-2 py-0.5 rounded border border-dark-border text-xs">
-                {session.user_email || 'Student'}
+                {getDisplayName(session)}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -208,6 +272,22 @@ export default function Share() {
               <span className="text-white font-medium">
                 {formatRelativeTime(session.updated_at)}
               </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Eye size={14} className="text-primary" />
+              <span className="text-dark-muted">Views:</span>
+              <span className="text-white font-mono font-bold">
+                {session.view_count || 0}
+              </span>
+            </div>
+            <div className="flex-1 flex justify-end">
+              <button
+                onClick={handleReportSession}
+                disabled={reporting}
+                className="flex items-center gap-1 text-[11px] font-mono font-bold text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-2.5 py-1 rounded-lg border border-red-500/20 transition-all cursor-pointer disabled:opacity-50"
+              >
+                Report
+              </button>
             </div>
           </div>
 

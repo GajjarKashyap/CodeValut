@@ -26,7 +26,7 @@ export default function SessionForm() {
 
   const [formData, setFormData] = useState({
     title: '', subject: 'Java', topic: '', aim: '', code: '', output: '',
-    notes: '', tags: '', is_shared: false, share_id: '',
+    notes: '', tags: '', is_shared: false, share_id: '', share_mode: 'private',
     user_id: '', user_email: '', created_at: '', updated_at: ''
   });
 
@@ -47,6 +47,7 @@ export default function SessionForm() {
             code: data.code || '', output: data.output || '',
             notes: data.notes || '', tags: data.tags ? data.tags.join(', ') : '',
             is_shared: !!data.is_shared, share_id: data.share_id || '',
+            share_mode: data.share_mode || 'private',
             user_id: data.user_id || '', user_email: data.user_email || '',
             created_at: data.created_at || '', updated_at: data.updated_at || ''
           });
@@ -78,9 +79,13 @@ export default function SessionForm() {
   useEffect(() => {
     if (!loading) {
       const timer = setTimeout(() => {
-        const { is_shared, share_id, user_id, user_email, created_at, updated_at, ...draftData } = formData;
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(draftData));
-        setSaveStatus('Draft saved locally');
+        try {
+          const { is_shared, share_id, user_id, user_email, created_at, updated_at, ...draftData } = formData;
+          localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...draftData, timestamp: Date.now() }));
+          setSaveStatus('Draft saved locally');
+        } catch (e) {
+          console.warn('Failed to save draft:', e);
+        }
       }, 2000);
       return () => clearTimeout(timer);
     }
@@ -93,12 +98,16 @@ export default function SessionForm() {
     setSaveStatus('Saving...');
 
     const tagsArray = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
+    const isSharedMode = formData.share_mode === 'public' || formData.share_mode === 'unlisted';
     const sessionData = {
       user_id: id ? (formData.user_id || user.id) : user.id,
       user_email: id ? (formData.user_email || user.email) : user.email,
       title: formData.title, subject: formData.subject, topic: formData.topic,
       aim: formData.aim, code: formData.code, output: formData.output,
-      notes: formData.notes, tags: tagsArray, is_shared: formData.is_shared
+      notes: formData.notes, tags: tagsArray,
+      is_shared: isSharedMode,
+      share_mode: formData.share_mode,
+      shared_at: isSharedMode ? new Date().toISOString() : null
     };
 
     try {
@@ -120,13 +129,28 @@ export default function SessionForm() {
     }
   }, [formData, id, user, saving]);
 
-  const handleToggleShare = async () => {
-    const nextShared = !formData.is_shared;
-    setFormData(prev => ({ ...prev, is_shared: nextShared }));
+  const handleShareModeChange = async (nextMode) => {
+    const currentMode = formData.share_mode;
+    if (nextMode === 'private' && (currentMode === 'public' || currentMode === 'unlisted')) {
+      const confirmPrivate = window.confirm('Disabling sharing will make this session private, and all existing share links will stop working. Continue?');
+      if (!confirmPrivate) return;
+    }
+
+    setFormData(prev => ({ ...prev, share_mode: nextMode }));
+
     if (id) {
-      const { error } = await supabase.from('sessions').update({ is_shared: nextShared }).eq('id', id);
+      const isSharedMode = nextMode === 'public' || nextMode === 'unlisted';
+      const { error } = await supabase
+        .from('sessions')
+        .update({
+          share_mode: nextMode,
+          is_shared: isSharedMode,
+          shared_at: isSharedMode ? new Date().toISOString() : null
+        })
+        .eq('id', id);
+
       if (error) {
-        setFormData(prev => ({ ...prev, is_shared: !nextShared }));
+        setFormData(prev => ({ ...prev, share_mode: currentMode }));
         alert('Failed to update sharing: ' + error.message);
       }
     }
@@ -227,7 +251,7 @@ export default function SessionForm() {
               >
                 <Share2 size={16} />
                 <span>Share</span>
-                {formData.is_shared && <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>}
+                {formData.share_mode !== 'private' && <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>}
               </button>
               {showShareMenu && (
                 <>
@@ -235,23 +259,25 @@ export default function SessionForm() {
                   <div className="absolute right-0 mt-2 w-80 bg-dark-surface border border-dark-border rounded-xl shadow-2xl p-4 z-50 space-y-4 animate-fadeIn">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Globe size={15} className={formData.is_shared ? 'text-green-400' : 'text-dark-muted'} />
-                        <span className="text-sm font-semibold text-white">Share to Web</span>
+                        <Globe size={15} className={formData.share_mode !== 'private' ? 'text-primary' : 'text-dark-muted'} />
+                        <span className="text-sm font-semibold text-white">Sharing Mode</span>
                       </div>
-                      <button
-                        type="button"
-                        onClick={handleToggleShare}
-                        className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ${formData.is_shared ? 'bg-primary' : 'bg-dark-bg border border-dark-border'}`}
+                      <select
+                        value={formData.share_mode || 'private'}
+                        onChange={(e) => handleShareModeChange(e.target.value)}
+                        className="bg-dark-bg border border-dark-border text-white text-xs px-2.5 py-1.5 rounded-lg focus:outline-none focus:border-primary/50 cursor-pointer font-mono font-bold uppercase tracking-wider"
                       >
-                        <div className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-200 ${formData.is_shared ? 'translate-x-5' : 'translate-x-0'}`} />
-                      </button>
+                        <option value="private">Private</option>
+                        <option value="unlisted">Unlisted</option>
+                        <option value="public">Public</option>
+                      </select>
                     </div>
                     <p className="text-xs text-dark-muted leading-relaxed">
-                      {formData.is_shared
-                        ? 'Public — anyone with the link can view this session.'
-                        : 'Private — only you can access this session.'}
+                      {formData.share_mode === 'public' && 'Public — visible in the Shared tab and anyone with the link can view it.'}
+                      {formData.share_mode === 'unlisted' && 'Unlisted — hidden from the Shared tab, but anyone with the link can view it.'}
+                      {formData.share_mode === 'private' && 'Private — only you can access this session.'}
                     </p>
-                    {formData.is_shared && formData.share_id && (
+                    {formData.share_mode !== 'private' && formData.share_id && (
                       <div className="flex items-center bg-dark-bg border border-dark-border rounded-lg p-2 gap-2">
                         <input
                           type="text" readOnly

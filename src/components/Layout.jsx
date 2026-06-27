@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Home, Coffee, Database, Search, Star, LogOut, PlusSquare, ShieldCheck, Zap, Archive, Settings, MessageCircle, Bell, BellRing, X } from 'lucide-react';
+import { Home, Coffee, Database, Search, Star, LogOut, PlusSquare, ShieldCheck, Zap, Archive, Settings, MessageCircle, Bell, BellRing, X, Share2 } from 'lucide-react';
 
 export default function Layout() {
   const { user } = useAuth();
@@ -108,6 +108,7 @@ export default function Layout() {
     { to: "/sessions/mongodb", icon: <Database size={20} />, label: "MongoDB" },
     { to: "/search", icon: <Search size={20} />, label: "Search" },
     { to: "/favorites", icon: <Star size={20} />, label: "Favorites" },
+    { to: "/shared", icon: <Share2 size={20} />, label: "Shared" },
     { to: "/archive", icon: <Archive size={20} />, label: "Archive" },
     { to: "/settings", icon: <Settings size={20} />, label: "Settings" },
   ];

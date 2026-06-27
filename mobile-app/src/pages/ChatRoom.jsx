@@ -368,7 +368,24 @@ export default function ChatRoom() {
 
   const handleAttachSession = async (session) => {
     setIsSessionModalOpen(false);
+    
+    // Auto-share confirmation
+    if (!session.share_mode || session.share_mode === 'private') {
+      const confirmShare = window.confirm('This session is currently private. Sharing it in chat will make it Public. Do you want to continue?');
+      if (!confirmShare) return;
+    }
+
     try {
+      // Mark as public shared in database
+      await supabase
+        .from('sessions')
+        .update({ 
+          share_mode: 'public',
+          is_shared: true,
+          shared_at: new Date().toISOString()
+        })
+        .eq('id', session.id);
+
       const { error } = await supabase
         .from('group_messages')
         .insert({

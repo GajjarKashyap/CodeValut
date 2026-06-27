@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Coffee, Database, Star, FileText, X, TrendingUp, Users, ShieldCheck, Activity, RefreshCw, Bell, Trash2, Megaphone } from 'lucide-react';
+import { Coffee, Database, Star, FileText, X, TrendingUp, Users, ShieldCheck, Activity, RefreshCw, Bell, Trash2, Megaphone, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,6 +9,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState({ total: 0, java: 0, mongo: 0, favorites: 0 });
   const [allSessions, setAllSessions] = useState([]);
+  const [reportedSessions, setReportedSessions] = useState([]);
   const [studentStatsList, setStudentStatsList] = useState([]);
   const [adminUsersActivity, setAdminUsersActivity] = useState([]);
   const [selectedStudentFilter, setSelectedStudentFilter] = useState(null);
@@ -95,6 +96,55 @@ export default function Dashboard() {
   };
 
 
+  const fetchReportedSessions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('sessions')
+        .select('id, title, user_email, report_count, is_blocked')
+        .gt('report_count', 0)
+        .order('report_count', { ascending: false });
+      if (!error && data) {
+        setReportedSessions(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleBlockSession = async (id) => {
+    if (window.confirm('Are you sure you want to block this session? It will be hidden from all public views.')) {
+      const { error } = await supabase
+        .from('sessions')
+        .update({ is_blocked: true })
+        .eq('id', id);
+      if (!error) {
+        setReportedSessions(prev => prev.map(s => s.id === id ? { ...s, is_blocked: true } : s));
+      }
+    }
+  };
+
+  const handleUnblockSession = async (id) => {
+    const { error } = await supabase
+      .from('sessions')
+      .update({ is_blocked: false })
+      .eq('id', id);
+    if (!error) {
+      setReportedSessions(prev => prev.map(s => s.id === id ? { ...s, is_blocked: false } : s));
+    }
+  };
+
+  const handleDismissReports = async (id) => {
+    if (window.confirm('Are you sure you want to dismiss all reports for this session?')) {
+      const { error: updateError } = await supabase
+        .from('sessions').update({ report_count: 0 }).eq({ id }, id);
+      const { error: deleteError } = await supabase
+        .from('session_reports').delete().eq('session_id', id);
+      if (!updateError && !deleteError) {
+        setReportedSessions(prev => prev.filter(s => s.id !== id));
+      }
+    }
+  };
+
   const fetchDashboardData = async () => {
       try {
         if (!user) return;
@@ -117,8 +167,9 @@ export default function Dashboard() {
         const javaCount = sessions.filter(s => s.subject === 'Java').length;
         const mongoCount = sessions.filter(s => s.subject === 'MongoDB').length;
         const favCount = sessions.filter(s => s.is_favorite).length;
+        const sharedCount = sessions.filter(s => s.share_mode === 'public' || s.share_mode === 'unlisted').length;
 
-        setStats({ total: sessions.length, java: javaCount, mongo: mongoCount, favorites: favCount });
+        setStats({ total: sessions.length, java: javaCount, mongo: mongoCount, favorites: favCount, shared: sharedCount });
 
         if (isAdmin) {
           // Fetch real-time user activity
@@ -159,6 +210,9 @@ export default function Dashboard() {
   useEffect(() => {
     if (user) {
       fetchDashboardData();
+      if (isAdmin) {
+        fetchReportedSessions();
+      }
       const hasSeenUpdate = localStorage.getItem('codevault_update_v1');
       if (!hasSeenUpdate) {
         setShowUpdateModal(true);
@@ -282,7 +336,8 @@ export default function Dashboard() {
       {/* Admin Announcement Tool */}
       {isAdmin && (
         <div className="bg-dark-surface rounded-xl border border-primary/20 overflow-hidden mt-6 p-5 relative">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl">
+          </div>
           <h3 className="text-base font-bold text-white font-sans flex items-center gap-2 mb-3">
             <Megaphone size={18} className="text-primary" />
             Global Announcement
@@ -302,6 +357,55 @@ export default function Dashboard() {
             >
               {sendingAnnouncement ? 'Sending...' : 'Send Broadcast'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Moderation Queue */}
+      {isAdmin && reportedSessions.length > 0 && (
+        <div className="bg-dark-surface rounded-xl border border-red-500/20 overflow-hidden mt-6 p-5 relative font-sans animate-fadeIn">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full blur-3xl bg-red-500/5">
+          </div>
+          <h3 className="text-base font-bold text-white font-sans flex items-center gap-2 mb-3">
+            <ShieldCheck size={18} className="text-red-400" />
+            Admin Moderation Queue ({reportedSessions.length})
+          </h3>
+          <div className="divide-y divide-dark-border">
+            {reportedSessions.map((session) => (
+              <div key={session.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h4 className="font-bold text-sm text-white">{session.title || 'Untitled Session'}</h4>
+                  <div className="flex gap-3 text-xs text-dark-muted mt-1 font-mono">
+                    <span>By: {session.user_email}</span>
+                    <span className="text-red-400 font-bold">• {session.report_count} Reports</span>
+                    {session.is_blocked && <span className="text-red-500 font-bold bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">Blocked</span>}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {session.is_blocked ? (
+                    <button
+                      onClick={() => handleUnblockSession(session.id)}
+                      className="px-3 py-1.5 bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 hover:text-white rounded-lg text-xs font-mono transition-colors cursor-pointer"
+                    >
+                      Unblock
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleBlockSession(session.id)}
+                      className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-white rounded-lg text-xs font-mono transition-colors cursor-pointer"
+                    >
+                      Block Session
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDismissReports(session.id)}
+                    className="px-3 py-1.5 bg-dark-bg border border-dark-border text-dark-muted hover:text-white rounded-lg text-xs font-mono transition-colors cursor-pointer"
+                  >
+                    Dismiss Reports
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

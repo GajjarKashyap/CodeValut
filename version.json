@@ -1,10 +1,10 @@
 {
-  "version": "1.2.2",
+  "version": "1.2.3",
   "min_version": "1.0.0",
   "release_date": "2026-06-27",
   "release_notes": "Mobile navigation drawer overhaul, haptic feedbacks, offline auto-syncing, keyboard avoidance, and custom error recovery.",
-  "title": "v1.2.2 Glow click fix",
+  "title": "v1.2.3 App Update Bypass",
   "changelog": [
-    "Fixed pointer events on background decorative elements to ensure desktop buttons are clickable"
+    "Disabled update popup in native app and corrected update URLs"
   ]
 }

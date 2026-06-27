@@ -450,7 +450,7 @@ export default function Layout() {
   const isMenuTabActive = showMenuDrawer || ['/sessions/java', '/sessions/mongodb', '/favorites', '/archive', '/settings'].includes(location.pathname);
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-dark-bg text-dark-text overflow-hidden select-none">
+    <div className="flex flex-col md:flex-row min-h-screen bg-dark-bg text-dark-text overflow-hidden">
       
       {/* Offline Indicator & Sync status */}
       {isOffline && (

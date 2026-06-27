@@ -48,8 +48,10 @@ export default function Dashboard() {
     setSendingAnnouncement(true);
     
     try {
-      const { data: allUsers } = await supabase.from('user_activity').select('user_id');
-      if (allUsers) {
+      const { data: allUsers, error: selectError } = await supabase.from('user_activity').select('user_id');
+      if (selectError) throw selectError;
+      
+      if (allUsers && allUsers.length > 0) {
         const notifications = allUsers.map(u => ({
           user_id: u.user_id,
           type: 'announcement',
@@ -58,12 +60,16 @@ export default function Dashboard() {
           is_read: false
         }));
         
-        await supabase.from('notifications').insert(notifications);
+        const { error: insertError } = await supabase.from('notifications').insert(notifications);
+        if (insertError) throw insertError;
+        
         alert('Announcement sent to ' + notifications.length + ' users!');
         setAnnouncement('');
+      } else {
+        alert('No active users found in user_activity to send the announcement to.');
       }
     } catch (e) {
-      alert('Failed: ' + e.message);
+      alert('Failed to send announcement: ' + e.message);
     } finally {
       setSendingAnnouncement(false);
     }

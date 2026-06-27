@@ -404,7 +404,7 @@ export default function Dashboard() {
       {/* Admin Announcement Tool */}
       {isAdmin && (
         <div className="bg-dark-surface rounded-xl border border-primary/20 overflow-hidden mt-6 p-5 relative">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none">
           </div>
           <h3 className="text-base font-bold text-white font-sans flex items-center gap-2 mb-3">
             <Megaphone size={18} className="text-primary" />
@@ -432,7 +432,7 @@ export default function Dashboard() {
       {/* Admin Moderation Queue */}
       {isAdmin && reportedSessions.length > 0 && (
         <div className="bg-dark-surface rounded-xl border border-red-500/20 overflow-hidden mt-6 p-5 relative font-sans animate-fadeIn">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full blur-3xl bg-red-500/5">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full blur-3xl bg-red-500/5 pointer-events-none">
           </div>
           <h3 className="text-base font-bold text-white font-sans flex items-center gap-2 mb-3">
             <ShieldCheck size={18} className="text-red-400" />

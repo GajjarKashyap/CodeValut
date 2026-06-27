@@ -1,12 +1,10 @@
 {
-  "version": "1.2.0",
+  "version": "1.2.2",
   "min_version": "1.0.0",
   "release_date": "2026-06-27",
   "release_notes": "Mobile navigation drawer overhaul, haptic feedbacks, offline auto-syncing, keyboard avoidance, and custom error recovery.",
-  "title": "v1.2.0 Mobile UI & Broadcast Fixes",
+  "title": "v1.2.2 Glow click fix",
   "changelog": [
-    "Fixed layout bugs in mobile navigation and quick save button",
-    "Fixed RLS policy issues in admin global announcement broadcast",
-    "Updated user lists to responsive card layout"
+    "Fixed pointer events on background decorative elements to ensure desktop buttons are clickable"
   ]
 }

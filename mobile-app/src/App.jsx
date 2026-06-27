@@ -79,7 +79,7 @@ const ProtectedRoute = ({ children }) => {
 // ----------------------------------------------------
 // 3. Version Checker Overlay Component
 // ----------------------------------------------------
-const CURRENT_VERSION = '1.2.2';
+const CURRENT_VERSION = '1.2.3';
 
 function compareVersions(v1, v2) {
   const p1 = v1.replace(/^v/, '').split('.').map(Number);
@@ -102,6 +102,11 @@ function VersionChecker() {
     const checkVersion = async () => {
       const enabled = localStorage.getItem('codevault_flag_enable_update_checker') !== 'false';
       if (!enabled) return;
+
+      // Stop update checker popup on native mobile app to prevent localhost redirects
+      if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+        return;
+      }
 
       try {
         const res = await fetch('https://gajjarkashyap.github.io/CodeValut/version.json?t=' + Date.now());
@@ -166,7 +171,7 @@ function VersionChecker() {
 
         <div className="flex flex-col gap-2">
           <a
-            href={window.location.origin + import.meta.env.BASE_URL + '#/download'}
+            href="https://gajjarkashyap.github.io/CodeValut/#/download" target="_blank" rel="noopener noreferrer"
             onClick={() => setShowPrompt(false)}
             className="w-full bg-primary hover:bg-primary/90 text-dark-bg font-bold py-2.5 rounded-lg text-center transition-all text-sm flex items-center justify-center gap-2"
           >

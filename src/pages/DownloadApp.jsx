@@ -260,14 +260,14 @@ export default function DownloadApp() {
             {/* Download Action */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <a
-                href="https://github.com/GajjarKashyap/CodeValut/releases/download/latest/app-debug.apk"
+                href="./APP/app-debug.apk"
                 className="w-full sm:w-auto bg-primary hover:bg-primary/95 text-dark-bg font-sans font-bold text-xs px-5 py-3 rounded-xl transition-all active:scale-95 cursor-pointer shadow-lg flex items-center justify-center gap-2"
               >
                 <Download size={15} />
                 <span>Latest Auto Build APK</span>
               </a>
               <a
-                href="APP/CODEVAULT.apk"
+                href="./APP/CODEVAULT.apk"
                 download="CODEVAULT.apk"
                 className="w-full sm:w-auto bg-transparent border border-dark-border hover:border-primary/50 text-dark-text hover:text-primary font-sans font-bold text-xs px-5 py-3 rounded-xl transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
               >

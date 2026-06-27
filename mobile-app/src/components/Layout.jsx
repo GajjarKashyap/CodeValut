@@ -552,9 +552,10 @@ export default function Layout() {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => { triggerHaptic(); navigate('/session/new'); }}
-              className="bg-primary hover:bg-primary/90 text-dark-bg px-4 py-1.5 rounded-lg text-sm font-bold flex items-center transition-all shadow-lg shadow-primary/15 cursor-pointer font-sans active:scale-95"
+              className="bg-primary hover:bg-primary/90 text-dark-bg px-2.5 py-1.5 sm:px-4 rounded-lg text-sm font-bold flex items-center transition-all shadow-lg shadow-primary/15 cursor-pointer font-sans active:scale-95"
             >
-              <PlusSquare size={15} className="mr-1.5" /> Quick Save
+              <PlusSquare size={15} className="sm:mr-1.5" />
+              <span className="hidden sm:inline"> Quick Save</span>
             </button>
             <button
               onClick={handleLogout}
@@ -567,7 +568,7 @@ export default function Layout() {
         </header>
 
         {/* Dynamic Nested Page Content (Supports notch area padding-bottom) */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-24 md:pb-6" style={{ paddingBottom: isTablet ? '1.5rem' : 'calc(4rem + env(safe-area-inset-bottom, 16px))' }}>
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-24 md:pb-6" style={{ paddingBottom: isTablet ? '1.5rem' : 'calc(5.5rem + env(safe-area-inset-bottom, 20px))' }}>
           <Outlet />
         </div>
       </main>

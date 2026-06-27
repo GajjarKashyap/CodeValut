@@ -548,7 +548,7 @@ export default function ChatRoom() {
   const filteredGlobalUsers = globalUsers.filter(u => u.email?.toLowerCase().includes(userSearch.toLowerCase()));
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)] bg-dark-bg border border-dark-border rounded-2xl overflow-hidden shadow-2xl relative">
+    <div className="flex flex-col h-full bg-dark-bg border border-dark-border rounded-2xl overflow-hidden shadow-2xl relative">
       <div 
         className="absolute inset-0 z-0 opacity-40 pointer-events-none"
         style={{

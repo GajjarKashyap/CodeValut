@@ -308,8 +308,9 @@ export default function Dashboard() {
         </div>
       )}
       {isRefreshing && (
-        <div className="w-full flex justify-center py-2 text-primary font-mono text-xs animate-spin">
-          🔄 Refreshing data...
+        <div className="w-full flex items-center justify-center gap-2 py-2 text-primary font-mono text-xs">
+          <RefreshCw size={14} className="animate-spin" />
+          <span>Refreshing data...</span>
         </div>
       )}
 
@@ -403,20 +404,20 @@ export default function Dashboard() {
             <Megaphone size={18} className="text-primary" />
             Global Announcement
           </h3>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input 
               type="text" 
               value={announcement}
               onChange={e => setAnnouncement(e.target.value)}
               placeholder="Broadcast a message to all users..."
-              className="flex-1 bg-dark-bg border border-dark-border focus:border-primary/50 text-dark-text rounded-lg px-4 py-2 focus:outline-none transition-all font-sans text-sm"
+              className="flex-1 bg-dark-bg border border-dark-border focus:border-primary/50 text-dark-text rounded-lg px-4 py-2.5 focus:outline-none transition-all font-sans text-sm"
             />
             <button 
               onClick={sendGlobalAnnouncement}
               disabled={sendingAnnouncement || !announcement.trim()}
-              className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-dark-bg px-6 py-2 rounded-lg text-sm font-bold transition-all active:scale-95 shrink-0"
+              className="w-full sm:w-auto bg-primary hover:bg-primary/90 disabled:opacity-50 text-dark-bg px-4 py-2.5 rounded-lg text-sm font-bold transition-all active:scale-95 shrink-0"
             >
-              {sendingAnnouncement ? 'Sending...' : 'Send Broadcast'}
+              {sendingAnnouncement ? 'Sending...' : 'Send'}
             </button>
           </div>
         </div>
@@ -514,65 +515,42 @@ export default function Dashboard() {
             </button>
           </div>
           
-          <div className="p-4 overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="text-dark-muted text-[11px] uppercase tracking-widest font-mono border-b border-dark-border/40">
-                  <th className="py-2 px-4 font-medium">Avatar</th>
-                  <th className="py-2 px-4 font-medium">Status</th>
-                  <th className="py-2 px-4 font-medium">User Email</th>
-                  <th className="py-2 px-4 font-medium">Last Login</th>
-                  <th className="py-2 px-4 font-medium">Last Seen</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-dark-border/20 text-sm font-sans">
-                {adminUsersActivity.map((activity) => {
-                  const lastSeen = new Date(activity.last_seen_at);
-                  const isOnline = (new Date() - lastSeen) < 5 * 60 * 1000; // 5 mins
-                  
-                  return (
-                    <tr key={activity.user_id} className="hover:bg-dark-bg/40 transition-colors">
-                      
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full border border-dark-border bg-dark-bg flex items-center justify-center overflow-hidden shrink-0">
-                            {profiles[activity.user_id] ? (
-                              <img src={profiles[activity.user_id]} className="w-full h-full object-cover" />
-                            ) : (
-                              <span className="text-xs font-bold text-dark-muted font-mono">{activity.email.charAt(0).toUpperCase()}</span>
-                            )}
-                          </div>
-                          {profiles[activity.user_id] && (
-                            <button onClick={() => setAvatarToDelete(activity.user_id)} className="text-dark-muted hover:text-red-400 p-1 transition-colors" title="Remove Avatar">
-                              <Trash2 size={14} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-
-                      <td className="py-3 px-4">
-                        <span className={`flex items-center gap-1.5 text-xs font-mono font-bold px-2 py-1 rounded-md w-max ${isOnline ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-dark-bg text-dark-muted border border-dark-border'}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-400 animate-pulse' : 'bg-dark-muted'}`}></span>
-                          {isOnline ? 'ONLINE' : 'OFFLINE'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-white font-medium text-sm">{activity.email}</td>
-                      <td className="py-3 px-4 text-dark-muted font-mono text-xs">
-                        {activity.last_login_at ? formatDistanceToNow(new Date(activity.last_login_at), { addSuffix: true }) : '-'}
-                      </td>
-                      <td className="py-3 px-4 text-dark-muted font-mono text-xs">
-                        {formatDistanceToNow(lastSeen, { addSuffix: true })}
-                      </td>
-                    </tr>
-                  );
-                })}
-                {adminUsersActivity.length === 0 && (
-                  <tr>
-                    <td colSpan="4" className="py-8 text-center text-dark-muted italic">No user activity recorded yet.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div className="p-3 space-y-2">
+            {adminUsersActivity.map((activity) => {
+              const lastSeen = new Date(activity.last_seen_at);
+              const isOnline = (new Date() - lastSeen) < 5 * 60 * 1000;
+              return (
+                <div key={activity.user_id} className="flex items-center gap-3 p-3 bg-dark-bg/40 rounded-xl border border-dark-border/40">
+                  <div className="w-10 h-10 rounded-full border border-dark-border bg-dark-bg flex items-center justify-center overflow-hidden shrink-0">
+                    {profiles[activity.user_id] ? (
+                      <img src={profiles[activity.user_id]} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-sm font-bold text-dark-muted font-mono">{activity.email.charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm text-white font-medium truncate max-w-[180px]">{activity.email}</span>
+                      <span className={`inline-flex items-center gap-1 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md ${isOnline ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-dark-bg text-dark-muted border border-dark-border'}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-400 animate-pulse' : 'bg-dark-muted'}`}></span>
+                        {isOnline ? 'ONLINE' : 'OFFLINE'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 mt-1 text-[10px] text-dark-muted font-mono">
+                      <span>Last seen {formatDistanceToNow(lastSeen, { addSuffix: true })}</span>
+                    </div>
+                  </div>
+                  {profiles[activity.user_id] && (
+                    <button onClick={() => setAvatarToDelete(activity.user_id)} className="text-dark-muted hover:text-red-400 p-1.5 transition-colors shrink-0" title="Remove Avatar">
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+            {adminUsersActivity.length === 0 && (
+              <div className="py-8 text-center text-dark-muted italic text-sm">No user activity recorded yet.</div>
+            )}
           </div>
         </div>
       )}
@@ -678,34 +656,34 @@ export default function Dashboard() {
             <ul className="divide-y divide-dark-border/60">
               {displaySessions.map((session) => (
                 <li key={session.id} className="hover:bg-dark-border/20 transition-colors">
-                  <Link to={`/session/${session.id}`} className="flex items-center justify-between p-4 gap-4">
-                    <div className="flex items-center space-x-3 min-w-0">
-                      <div className={`p-2 rounded-lg shrink-0 ${session.subject === 'Java' ? 'bg-orange-500/10 text-orange-400' : 'bg-green-500/10 text-green-400'}`}>
-                        {session.subject === 'Java' ? <Coffee size={18} /> : <Database size={18} />}
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className="text-white font-medium font-sans flex items-center gap-2 truncate">
-                          {session.title || 'Untitled Session'}
-                          {session.is_favorite && <Star size={13} className="text-yellow-400 fill-current shrink-0" />}
-                        </h4>
-                        <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-0.5">
-                          <span className="text-xs text-dark-muted font-sans">{session.subject}</span>
-                          {session.topic && <span className="text-xs text-dark-muted">• {session.topic}</span>}
-                          {isAdmin && session.user_email && (
-                            <span className="bg-primary/10 text-primary text-[10px] px-1.5 py-0.5 rounded border border-primary/20 font-mono">
-                              {session.user_email}
-                            </span>
-                          )}
-                          {session.tags && session.tags.length > 0 && session.tags.map(tag => (
-                            <span key={tag} className="bg-dark-bg text-dark-muted text-[10px] px-1.5 py-0.5 rounded border border-dark-border font-mono">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
+                  <Link to={`/session/${session.id}`} className="flex items-start gap-3 p-4">
+                    <div className={`p-2 rounded-lg shrink-0 mt-0.5 ${session.subject === 'Java' ? 'bg-orange-500/10 text-orange-400' : 'bg-green-500/10 text-green-400'}`}>
+                      {session.subject === 'Java' ? <Coffee size={18} /> : <Database size={18} />}
                     </div>
-                    <div className="text-xs text-dark-muted font-mono shrink-0">
-                      {formatDistanceToNow(new Date(session.updated_at), { addSuffix: true })}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="text-white font-medium font-sans truncate text-sm flex-1 min-w-0">
+                          {session.title || 'Untitled Session'}
+                          {session.is_favorite && <Star size={13} className="text-yellow-400 fill-current inline ml-1 shrink-0" />}
+                        </h4>
+                        <span className="text-[10px] text-dark-muted font-mono shrink-0 whitespace-nowrap">
+                          {formatDistanceToNow(new Date(session.updated_at), { addSuffix: true })}
+                        </span>
+                      </div>
+                      <div className="flex items-center flex-wrap gap-1.5 mt-1">
+                        <span className="text-[11px] text-dark-muted font-sans">{session.subject}</span>
+                        {session.topic && <span className="text-[11px] text-dark-muted">• {session.topic}</span>}
+                        {isAdmin && session.user_email && (
+                          <span className="bg-primary/10 text-primary text-[9px] px-1.5 py-0.5 rounded border border-primary/20 font-mono truncate max-w-[130px]">
+                            {session.user_email}
+                          </span>
+                        )}
+                        {session.tags && session.tags.length > 0 && session.tags.slice(0, 2).map(tag => (
+                          <span key={tag} className="bg-dark-bg text-dark-muted text-[9px] px-1.5 py-0.5 rounded border border-dark-border font-mono truncate max-w-[80px]">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </Link>
                 </li>

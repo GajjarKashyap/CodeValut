@@ -1,10 +1,10 @@
 {
-  "version": "1.2.5",
+  "version": "1.2.6",
   "min_version": "1.0.0",
   "release_date": "2026-06-27",
   "release_notes": "Mobile navigation drawer overhaul, haptic feedbacks, offline auto-syncing, keyboard avoidance, and custom error recovery.",
-  "title": "v1.2.5 Admin Force Logout",
+  "title": "v1.2.6 Optimized Force Logout",
   "changelog": [
-    "Added ability for admins to force logout any user"
+    "Optimized logout flow to redirect instantly without blocking thread"
   ]
 }

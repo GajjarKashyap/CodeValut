@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { supabase } from '../lib/supabase';
-import { Coffee, Database, Star, FileText, X, TrendingUp, Users, ShieldCheck, Activity, RefreshCw, Bell, Trash2, Megaphone, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Coffee, Database, Star, FileText, X, TrendingUp, Users, ShieldCheck, Activity, RefreshCw, Bell, Trash2, Megaphone, AlertTriangle, CheckCircle, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
@@ -103,6 +103,28 @@ export default function Dashboard() {
       setAvatarToDelete(null);
     } catch (e) {
       alert('Failed: ' + e.message);
+    }
+  };
+
+  const handleForceLogout = async (userId) => {
+    const confirmLogout = window.confirm("Are you sure you want to force logout this student?");
+    if (!confirmLogout) return;
+    try {
+      const { error } = await supabase
+        .from('user_activity')
+        .update({ force_logout: true })
+        .eq('user_id', userId);
+      if (error) throw error;
+      await supabase.from('audit_logs').insert({
+        admin_id: user.id,
+        action: 'force_logout',
+        target_user_id: userId,
+        details: 'Admin forced logout for student'
+      });
+      alert('Force logout command sent successfully.');
+    } catch (err) {
+      console.error('Error sending force logout:', err);
+      alert('Failed to send force logout command: ' + err.message);
     }
   };
 
@@ -546,11 +568,22 @@ export default function Dashboard() {
                       <span>Last seen {formatDistanceToNow(lastSeen, { addSuffix: true })}</span>
                     </div>
                   </div>
-                  {profiles[activity.user_id] && (
-                    <button onClick={() => setAvatarToDelete(activity.user_id)} className="text-dark-muted hover:text-red-400 p-1.5 transition-colors shrink-0" title="Remove Avatar">
-                      <Trash2 size={14} />
-                    </button>
-                  )}
+                  <div className="flex items-center gap-1 shrink-0">
+                    {profiles[activity.user_id] && (
+                      <button onClick={() => setAvatarToDelete(activity.user_id)} className="text-dark-muted hover:text-red-400 p-1.5 transition-colors" title="Remove Avatar">
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                    {activity.user_id !== user.id && (
+                      <button 
+                        onClick={() => handleForceLogout(activity.user_id)} 
+                        className="text-dark-muted hover:text-red-400 hover:bg-red-500/10 border border-dark-border hover:border-red-500/20 p-1.5 rounded-lg transition-all cursor-pointer" 
+                        title="Force Logout User"
+                      >
+                        <LogOut size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}

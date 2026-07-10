@@ -389,6 +389,53 @@ export default function Layout() {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
   };
 
+  // Listen for force-logout event from admin (real-time & startup checks)
+  useEffect(() => {
+    if (!user) return;
+    
+    const checkForceLogout = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('user_activity')
+          .select('force_logout')
+          .eq('user_id', user.id)
+          .single();
+          
+        if (!error && data && data.force_logout === true) {
+          await supabase.from('user_activity').update({ force_logout: false }).eq('user_id', user.id);
+          await supabase.auth.signOut();
+          navigate('/login');
+          alert('You have been logged out by the administrator.');
+        }
+      } catch (err) {
+        console.error('Error checking force logout status:', err);
+      }
+    };
+    
+    checkForceLogout();
+
+    const channel = supabase
+      .channel(`force_logout_${user.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'user_activity',
+        filter: `user_id=eq.${user.id}`
+      }, async (payload) => {
+        if (payload.new && payload.new.force_logout === true) {
+          await supabase.from('user_activity').update({ force_logout: false }).eq('user_id', user.id);
+          await supabase.auth.signOut();
+          navigate('/login');
+          alert('You have been logged out by the administrator.');
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, navigate]);
+
   useEffect(() => {
     if (user) {
       supabase.from('user_activity').upsert({
@@ -547,7 +594,7 @@ export default function Layout() {
           <div className="font-medium font-mono text-xs text-dark-muted tracking-wide flex items-center gap-3">
             <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
             <span className="text-primary/40 hidden sm:inline">|</span>
-            <span className="text-primary font-sans text-[10px] font-semibold bg-primary/10 border border-primary/20 rounded px-2 py-0.5 whitespace-nowrap">v1.2.4 Live</span>
+            <span className="text-primary font-sans text-[10px] font-semibold bg-primary/10 border border-primary/20 rounded px-2 py-0.5 whitespace-nowrap">v1.2.5 Live</span>
           </div>
           <div className="flex items-center space-x-2">
             <button

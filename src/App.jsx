@@ -80,7 +80,7 @@ const ProtectedRoute = ({ children }) => {
 // ----------------------------------------------------
 // 3. Version Checker Overlay Component
 // ----------------------------------------------------
-const CURRENT_VERSION = '1.3.2';
+const CURRENT_VERSION = '1.3.3';
 
 function compareVersions(v1, v2) {
   const p1 = v1.replace(/^v/, '').split('.').map(Number);
@@ -237,13 +237,31 @@ function BlockGuard({ children }) {
 
   if (isBlocked) {
     return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center z-[999999] overflow-hidden select-none" style={{ backgroundColor: '#252933' }}>
-        <div className="w-[320px] h-[320px] sm:w-[400px] sm:h-[400px] flex items-center justify-center">
-          <img 
-            src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExYWN1cGVzY3htdTM0NTJ4dzNta2k3Zm4wandoeTlrMmQ5dzJlaWIxaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26ueZOfzJX4hp2vaU/giphy.gif" 
-            alt="Access Denied" 
-            className="w-full h-full object-contain pointer-events-none"
-          />
+      <div className="fixed inset-0 bg-black flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 z-[999999] overflow-y-auto md:overflow-hidden select-none p-6">
+        {/* Left/Top Sticker */}
+        <div className="w-[260px] h-[260px] sm:w-[350px] sm:h-[350px] relative flex-shrink-0">
+          <iframe 
+            src="https://giphy.com/embed/MksyvqJEf8yPK" 
+            width="100%" 
+            height="100%" 
+            style={{ position: 'absolute', pointerEvents: 'none' }} 
+            frameBorder="0" 
+            className="giphy-embed" 
+            allowFullScreen
+          ></iframe>
+        </div>
+        
+        {/* Right/Bottom Sticker */}
+        <div className="w-[260px] h-[260px] sm:w-[350px] sm:h-[350px] relative flex-shrink-0">
+          <iframe 
+            src="https://giphy.com/embed/8MTq4s5eCKVfa" 
+            width="100%" 
+            height="100%" 
+            style={{ position: 'absolute', pointerEvents: 'none' }} 
+            frameBorder="0" 
+            className="giphy-embed" 
+            allowFullScreen
+          ></iframe>
         </div>
       </div>
     );

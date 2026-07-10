@@ -1,5 +1,5 @@
 -- ============================================================
--- CODEVAULT — CHAT & GROUPS RLS POLICY FIX
+-- CODEVAULT — CHAT & GROUPS RLS POLICY FIX (v2 — Recursion Fix)
 -- Paste this script into: Supabase Dashboard → SQL Editor → Run
 -- ============================================================
 
@@ -48,9 +48,10 @@ CREATE POLICY "select_groups" ON public.groups
   USING (
     is_global = true
     OR auth.jwt() ->> 'email' = 'admin@admin.com'
-    OR id IN (
-      SELECT group_id FROM public.group_members
-      WHERE user_id = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM public.group_members
+      WHERE group_id = groups.id
+      AND user_id = auth.uid()
     )
   );
 
@@ -86,21 +87,10 @@ CREATE POLICY "delete_groups" ON public.groups
 -- STEP 3: RECREATE CORRECT POLICIES — group_members
 -- ────────────────────────────────────────────────────────────
 
--- Select: Users view their own membership, or members of global/owned groups, or admin views all
+-- Select: Allow all authenticated users to read memberships (bypasses recursive group loops)
 CREATE POLICY "select_group_members" ON public.group_members
   FOR SELECT
-  USING (
-    user_id = auth.uid()
-    OR auth.jwt() ->> 'email' = 'admin@admin.com'
-    OR EXISTS (
-      SELECT 1 FROM public.groups
-      WHERE id = group_members.group_id
-      AND (
-        is_global = true
-        OR created_by = auth.uid()
-      )
-    )
-  );
+  USING (auth.role() = 'authenticated');
 
 -- Insert: Authenticated users can join groups, invite members, or admin manages all
 CREATE POLICY "insert_group_members" ON public.group_members
@@ -148,7 +138,7 @@ CREATE POLICY "delete_group_members" ON public.group_members
 -- STEP 4: RECREATE CORRECT POLICIES — group_messages
 -- ────────────────────────────────────────────────────────────
 
--- Select: View messages if admin, if group is global, or if user is a member
+-- View messages if admin, if group is global, or if user is a member
 CREATE POLICY "select_group_messages" ON public.group_messages
   FOR SELECT
   USING (
@@ -165,7 +155,7 @@ CREATE POLICY "select_group_messages" ON public.group_messages
     )
   );
 
--- Insert: Send messages if admin, if group is global, or if user is a member
+-- Send messages if admin, if group is global, or if user is a member
 CREATE POLICY "insert_group_messages" ON public.group_messages
   FOR INSERT
   WITH CHECK (

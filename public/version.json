@@ -1,10 +1,10 @@
 {
-  "version": "1.3.1",
+  "version": "1.3.2",
   "min_version": "1.0.0",
   "release_date": "2026-06-27",
   "release_notes": "Mobile navigation drawer overhaul, haptic feedbacks, offline auto-syncing, keyboard avoidance, and custom error recovery.",
-  "title": "v1.3.1 Borderless Block Screen",
+  "title": "v1.3.2 New Block Theme",
   "changelog": [
-    "Removed border and container decorations from centered block GIF"
+    "Updated BlockGuard background color to dark #252933 and set new loop GIF"
   ]
 }

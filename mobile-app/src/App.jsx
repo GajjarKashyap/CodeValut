@@ -80,7 +80,7 @@ const ProtectedRoute = ({ children }) => {
 // ----------------------------------------------------
 // 3. Version Checker Overlay Component
 // ----------------------------------------------------
-const CURRENT_VERSION = '1.2.9';
+const CURRENT_VERSION = '1.3.0';
 
 function compareVersions(v1, v2) {
   const p1 = v1.replace(/^v/, '').split('.').map(Number);
@@ -237,12 +237,14 @@ function BlockGuard({ children }) {
 
   if (isBlocked) {
     return (
-      <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-[999999] overflow-hidden select-none">
-        <img 
-          src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExeHV4ZnlnZGFjd3RyaXF5aXd5dXNnbndvMno4c2lkbjFuaGVwMzBiNSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/nXf7yRHNGFPMOV79uz/giphy.gif" 
-          alt="Access Denied" 
-          className="w-full h-full object-cover pointer-events-none"
-        />
+      <div className="fixed inset-0 flex flex-col items-center justify-center z-[999999] overflow-hidden select-none" style={{ backgroundColor: '#99CB64' }}>
+        <div className="w-[320px] h-[320px] sm:w-[400px] sm:h-[400px] rounded-2xl overflow-hidden shadow-2xl border-4 border-white/30 bg-black/10 flex items-center justify-center">
+          <img 
+            src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExeHV4ZnlnZGFjd3RyaXF5aXd5dXNnbndvMno4c2lkbjFuaGVwMzBiNSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/nXf7yRHNGFPMOV79uz/giphy.gif" 
+            alt="Access Denied" 
+            className="w-full h-full object-cover pointer-events-none"
+          />
+        </div>
       </div>
     );
   }

@@ -1,10 +1,10 @@
 {
-  "version": "1.2.7",
+  "version": "1.2.8",
   "min_version": "1.0.0",
   "release_date": "2026-06-27",
   "release_notes": "Mobile navigation drawer overhaul, haptic feedbacks, offline auto-syncing, keyboard avoidance, and custom error recovery.",
-  "title": "v1.2.7 Dashboard Loading Color",
+  "title": "v1.2.8 Block Lock Screen",
   "changelog": [
-    "Updated dashboard loading screen colors to brand green #99CB64"
+    "Implemented full screen lock screen with loop GIF upon force logout/block"
   ]
 }

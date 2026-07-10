@@ -107,29 +107,50 @@ export default function Dashboard() {
   };
 
   const handleForceLogout = async (userId) => {
-    const confirmLogout = window.confirm("Are you sure you want to force logout this student?");
+    const confirmLogout = window.confirm("Are you sure you want to block & force logout this student?");
     if (!confirmLogout) return;
     try {
-      // Instantly start the update
       const { error } = await supabase
         .from('user_activity')
-        .update({ force_logout: true })
+        .update({ force_logout: true, is_blocked: true })
         .eq('user_id', userId);
       if (error) throw error;
       
-      // Log it
       supabase.from('audit_logs').insert({
         admin_id: user.id,
         action: 'force_logout',
         target_user_id: userId,
-        details: 'Admin forced logout for student'
+        details: 'Admin blocked and force-logged out student'
       });
       
-      // Optmistically set offline locally in state
-      setAdminUsersActivity(prev => prev.map(a => a.user_id === userId ? { ...a, last_seen_at: new Date(Date.now() - 10 * 60 * 1000).toISOString() } : a));
+      setAdminUsersActivity(prev => prev.map(a => a.user_id === userId ? { ...a, is_blocked: true } : a));
     } catch (err) {
       console.error('Error sending force logout:', err);
-      alert('Failed to send force logout command: ' + err.message);
+      alert('Failed: ' + err.message);
+    }
+  };
+
+  const handleUnblockUser = async (userId) => {
+    const confirmUnblock = window.confirm("Are you sure you want to unblock this student?");
+    if (!confirmUnblock) return;
+    try {
+      const { error } = await supabase
+        .from('user_activity')
+        .update({ is_blocked: false })
+        .eq('user_id', userId);
+      if (error) throw error;
+      
+      supabase.from('audit_logs').insert({
+        admin_id: user.id,
+        action: 'unblock_user',
+        target_user_id: userId,
+        details: 'Admin unblocked student'
+      });
+      
+      setAdminUsersActivity(prev => prev.map(a => a.user_id === userId ? { ...a, is_blocked: false } : a));
+    } catch (err) {
+      console.error('Error unblocking user:', err);
+      alert('Failed: ' + err.message);
     }
   };
 
@@ -580,13 +601,23 @@ export default function Dashboard() {
                       </button>
                     )}
                     {activity.user_id !== user.id && (
-                      <button 
-                        onClick={() => handleForceLogout(activity.user_id)} 
-                        className="text-dark-muted hover:text-red-400 hover:bg-red-500/10 border border-dark-border hover:border-red-500/20 p-1.5 rounded-lg transition-all cursor-pointer" 
-                        title="Force Logout User"
-                      >
-                        <LogOut size={14} />
-                      </button>
+                      activity.is_blocked ? (
+                        <button 
+                          onClick={() => handleUnblockUser(activity.user_id)} 
+                          className="text-green-400 bg-green-500/10 border border-green-500/20 hover:bg-green-500/20 p-1.5 rounded-lg transition-all cursor-pointer" 
+                          title="Unblock Student"
+                        >
+                          <CheckCircle size={14} />
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => handleForceLogout(activity.user_id)} 
+                          className="text-dark-muted hover:text-red-400 hover:bg-red-500/10 border border-dark-border hover:border-red-500/20 p-1.5 rounded-lg transition-all cursor-pointer" 
+                          title="Block & Force Logout"
+                        >
+                          <LogOut size={14} />
+                        </button>
+                      )
                     )}
                   </div>
                 </div>

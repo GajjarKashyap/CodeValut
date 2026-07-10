@@ -79,7 +79,7 @@ const ProtectedRoute = ({ children }) => {
 // ----------------------------------------------------
 // 3. Version Checker Overlay Component
 // ----------------------------------------------------
-const CURRENT_VERSION = '1.2.7';
+const CURRENT_VERSION = '1.2.8';
 
 function compareVersions(v1, v2) {
   const p1 = v1.replace(/^v/, '').split('.').map(Number);
@@ -204,6 +204,51 @@ function VersionChecker() {
 // ----------------------------------------------------
 // 4. Main App Routing & Setup
 // ----------------------------------------------------
+function BlockGuard({ children }) {
+  const [isBlocked, setIsBlocked] = useState(
+    localStorage.getItem('codevault_forced_out') === 'true'
+  );
+
+  useEffect(() => {
+    const blockedUserId = localStorage.getItem('codevault_blocked_user_id');
+    if (!blockedUserId) return;
+
+    const channel = supabase
+      .channel(`block_guard_${blockedUserId}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'user_activity',
+        filter: `user_id=eq.${blockedUserId}`
+      }, (payload) => {
+        if (payload.new && payload.new.is_blocked === false) {
+          localStorage.removeItem('codevault_forced_out');
+          localStorage.removeItem('codevault_blocked_user_id');
+          setIsBlocked(false);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isBlocked]);
+
+  if (isBlocked) {
+    return (
+      <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-[999999] overflow-hidden select-none">
+        <img 
+          src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExeHV4ZnlnZGFjd3RyaXF5aXd5dXNnbndvMno4c2lkbjFuaGVwMzBiNSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/nXf7yRHNGFPMOV79uz/giphy.gif" 
+          alt="Access Denied" 
+          className="w-full h-full object-cover pointer-events-none"
+        />
+      </div>
+    );
+  }
+
+  return children;
+}
+
 function App() {
   // Initialize default feature flags
   useEffect(() => {
@@ -221,7 +266,8 @@ function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <Router>
+        <BlockGuard>
+          <Router>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/download" element={<DownloadApp />} />
@@ -241,7 +287,8 @@ function App() {
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </Router>
+          </Router>
+        </BlockGuard>
         <VersionChecker />
       </AuthProvider>
     </ErrorBoundary>

@@ -401,14 +401,12 @@ export default function Layout() {
           .eq('user_id', user.id)
           .single();
           
-        if (!error && data && data.force_logout === true) {
-          // Perform tasks instantly and asynchronously
+        if (!error && data && (data.force_logout === true || data.is_blocked === true)) {
+          localStorage.setItem('codevault_forced_out', 'true');
+          localStorage.setItem('codevault_blocked_user_id', user.id);
           supabase.from('user_activity').update({ force_logout: false }).eq('user_id', user.id);
           supabase.auth.signOut();
-          navigate('/login');
-          setTimeout(() => {
-            alert('You have been logged out by the administrator.');
-          }, 100);
+          window.location.reload();
         }
       } catch (err) {
         console.error('Error checking force logout status:', err);
@@ -425,14 +423,17 @@ export default function Layout() {
         table: 'user_activity',
         filter: `user_id=eq.${user.id}`
       }, (payload) => {
-        if (payload.new && payload.new.force_logout === true) {
-          // Instantly redirect and sign out without waiting for network updates
+        if (payload.new && (payload.new.force_logout === true || payload.new.is_blocked === true)) {
+          // Lock the user in local storage
+          localStorage.setItem('codevault_forced_out', 'true');
+          localStorage.setItem('codevault_blocked_user_id', user.id);
+          
+          // Clear active flags and session
           supabase.from('user_activity').update({ force_logout: false }).eq('user_id', user.id);
           supabase.auth.signOut();
-          navigate('/login');
-          setTimeout(() => {
-            alert('You have been logged out by the administrator.');
-          }, 100);
+          
+          // Reload immediately to trigger full-screen lock overlay
+          window.location.reload();
         }
       })
       .subscribe();
@@ -600,7 +601,7 @@ export default function Layout() {
           <div className="font-medium font-mono text-xs text-dark-muted tracking-wide flex items-center gap-3">
             <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
             <span className="text-primary/40 hidden sm:inline">|</span>
-            <span className="text-primary font-sans text-[10px] font-semibold bg-primary/10 border border-primary/20 rounded px-2 py-0.5 whitespace-nowrap">v1.2.7 Live</span>
+            <span className="text-primary font-sans text-[10px] font-semibold bg-primary/10 border border-primary/20 rounded px-2 py-0.5 whitespace-nowrap">v1.2.8 Live</span>
           </div>
           <div className="flex items-center space-x-2">
             <button

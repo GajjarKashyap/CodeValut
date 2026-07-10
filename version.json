@@ -1,10 +1,10 @@
 {
-  "version": "1.2.6",
+  "version": "1.2.7",
   "min_version": "1.0.0",
   "release_date": "2026-06-27",
   "release_notes": "Mobile navigation drawer overhaul, haptic feedbacks, offline auto-syncing, keyboard avoidance, and custom error recovery.",
-  "title": "v1.2.6 Optimized Force Logout",
+  "title": "v1.2.7 Dashboard Loading Color",
   "changelog": [
-    "Optimized logout flow to redirect instantly without blocking thread"
+    "Updated dashboard loading screen colors to brand green #99CB64"
   ]
 }

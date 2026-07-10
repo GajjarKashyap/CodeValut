@@ -1,10 +1,11 @@
 {
-  "version": "1.2.3",
+  "version": "1.2.4",
   "min_version": "1.0.0",
   "release_date": "2026-06-27",
   "release_notes": "Mobile navigation drawer overhaul, haptic feedbacks, offline auto-syncing, keyboard avoidance, and custom error recovery.",
-  "title": "v1.2.3 App Update Bypass",
+  "title": "v1.2.4 Chat and Share Patch",
   "changelog": [
-    "Disabled update popup in native app and corrected update URLs"
+    "Fixed ReferenceError: Eye is not defined on Share page",
+    "Added real-time message deletion capability in chat rooms"
   ]
 }

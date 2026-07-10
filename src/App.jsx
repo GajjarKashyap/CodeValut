@@ -79,7 +79,7 @@ const ProtectedRoute = ({ children }) => {
 // ----------------------------------------------------
 // 3. Version Checker Overlay Component
 // ----------------------------------------------------
-const CURRENT_VERSION = '1.2.3';
+const CURRENT_VERSION = '1.2.4';
 
 function compareVersions(v1, v2) {
   const p1 = v1.replace(/^v/, '').split('.').map(Number);

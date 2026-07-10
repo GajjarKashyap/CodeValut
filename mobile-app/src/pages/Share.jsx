@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import Editor from '@monaco-editor/react';
-import { Coffee, Database, Copy, Download, Globe, AlertCircle, Check, Tag, User, Calendar, Clock, Mail } from 'lucide-react';
+import { Coffee, Database, Copy, Download, Globe, AlertCircle, Check, Tag, User, Calendar, Clock, Mail, Eye } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function Share() {

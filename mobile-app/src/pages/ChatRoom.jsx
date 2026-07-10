@@ -54,21 +54,26 @@ export default function ChatRoom() {
     const channel = supabase
       .channel(`chat_room_${chatId}`)
       .on('postgres_changes', { 
-        event: 'INSERT', 
+        event: '*', 
         schema: 'public', 
         table: 'group_messages',
         filter: `group_id=eq.${chatId}`
       }, (payload) => {
-        let newMsg = payload.new;
-        setMessages(prev => {
-          if (prev.some(m => m.id === newMsg.id)) return prev;
-          if (newMsg.session_id) {
-            fetchMessages();
-            return prev;
-          }
-          return [...prev, newMsg];
-        });
-        setTimeout(scrollToBottom, 100);
+        if (payload.eventType === 'INSERT') {
+          let newMsg = payload.new;
+          setMessages(prev => {
+            if (prev.some(m => m.id === newMsg.id)) return prev;
+            if (newMsg.session_id) {
+              fetchMessages();
+              return prev;
+            }
+            return [...prev, newMsg];
+          });
+          setTimeout(scrollToBottom, 100);
+        } else if (payload.eventType === 'DELETE') {
+          const deletedId = payload.old.id;
+          setMessages(prev => prev.filter(m => m.id !== deletedId));
+        }
       })
       .subscribe((status) => {
         if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
@@ -535,6 +540,18 @@ export default function ChatRoom() {
     }
   };
 
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm("Are you sure you want to delete this message?")) return;
+    try {
+      const { error } = await supabase.from('group_messages').delete().eq('id', messageId);
+      if (error) throw error;
+      setMessages(prev => prev.filter(m => m.id !== messageId));
+    } catch (err) {
+      console.error('Error deleting message:', err);
+      alert('Failed to delete message: ' + err.message);
+    }
+  };
+
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center bg-dark-bg">
@@ -633,13 +650,18 @@ export default function ChatRoom() {
               >
                 
                 {/* Reply/React Hover Buttons */}
-                <div className={`absolute top-0 ${isMine ? '-left-16' : '-right-16'} opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-dark-bg border border-dark-border rounded-lg shadow-lg z-20`}>
+                <div className={`absolute top-0 ${isMine ? '-left-24' : '-right-24'} opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-dark-bg border border-dark-border rounded-lg shadow-lg z-20`}>
                   <button onClick={() => setShowEmojiPicker(showEmojiPicker === msg.id ? null : msg.id)} className="p-1.5 text-dark-muted hover:text-primary transition-colors cursor-pointer" title="React">
                     <SmilePlus size={16} />
                   </button>
                   <button onClick={() => setReplyingTo(msg)} className="p-1.5 text-dark-muted hover:text-primary transition-colors cursor-pointer" title="Reply">
                     <CornerUpLeft size={16} />
                   </button>
+                  {(isMine || user?.email?.trim()?.toLowerCase() === 'admin@admin.com') && (
+                    <button onClick={() => handleDeleteMessage(msg.id)} className="p-1.5 text-dark-muted hover:text-red-400 transition-colors cursor-pointer" title="Delete Message">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                   
                   {/* Emoji Picker Popover */}
                   {showEmojiPicker === msg.id && (

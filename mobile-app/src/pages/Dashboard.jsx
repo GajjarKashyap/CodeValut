@@ -266,8 +266,8 @@ export default function Dashboard() {
   if (loading) return (
     <div className="flex items-center justify-center py-20">
       <div className="flex flex-col items-center gap-3">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-        <p className="text-dark-muted text-sm font-sans">Loading dashboard...</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2" style={{ borderColor: '#99CB64', borderTopColor: 'transparent' }}></div>
+        <p className="text-sm font-sans font-medium" style={{ color: '#99CB64' }}>Loading dashboard...</p>
       </div>
     </div>
   );

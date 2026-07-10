@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { supabase } from './lib/supabase';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -79,7 +80,7 @@ const ProtectedRoute = ({ children }) => {
 // ----------------------------------------------------
 // 3. Version Checker Overlay Component
 // ----------------------------------------------------
-const CURRENT_VERSION = '1.2.8';
+const CURRENT_VERSION = '1.2.9';
 
 function compareVersions(v1, v2) {
   const p1 = v1.replace(/^v/, '').split('.').map(Number);

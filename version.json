@@ -1,11 +1,10 @@
 {
-  "version": "1.2.4",
+  "version": "1.2.5",
   "min_version": "1.0.0",
   "release_date": "2026-06-27",
   "release_notes": "Mobile navigation drawer overhaul, haptic feedbacks, offline auto-syncing, keyboard avoidance, and custom error recovery.",
-  "title": "v1.2.4 Chat and Share Patch",
+  "title": "v1.2.5 Admin Force Logout",
   "changelog": [
-    "Fixed ReferenceError: Eye is not defined on Share page",
-    "Added real-time message deletion capability in chat rooms"
+    "Added ability for admins to force logout any user"
   ]
 }

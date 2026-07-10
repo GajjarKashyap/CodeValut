@@ -110,18 +110,23 @@ export default function Dashboard() {
     const confirmLogout = window.confirm("Are you sure you want to force logout this student?");
     if (!confirmLogout) return;
     try {
+      // Instantly start the update
       const { error } = await supabase
         .from('user_activity')
         .update({ force_logout: true })
         .eq('user_id', userId);
       if (error) throw error;
-      await supabase.from('audit_logs').insert({
+      
+      // Log it
+      supabase.from('audit_logs').insert({
         admin_id: user.id,
         action: 'force_logout',
         target_user_id: userId,
         details: 'Admin forced logout for student'
       });
-      alert('Force logout command sent successfully.');
+      
+      // Optmistically set offline locally in state
+      setAdminUsersActivity(prev => prev.map(a => a.user_id === userId ? { ...a, last_seen_at: new Date(Date.now() - 10 * 60 * 1000).toISOString() } : a));
     } catch (err) {
       console.error('Error sending force logout:', err);
       alert('Failed to send force logout command: ' + err.message);

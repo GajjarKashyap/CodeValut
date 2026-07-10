@@ -402,10 +402,13 @@ export default function Layout() {
           .single();
           
         if (!error && data && data.force_logout === true) {
-          await supabase.from('user_activity').update({ force_logout: false }).eq('user_id', user.id);
-          await supabase.auth.signOut();
+          // Perform tasks instantly and asynchronously
+          supabase.from('user_activity').update({ force_logout: false }).eq('user_id', user.id);
+          supabase.auth.signOut();
           navigate('/login');
-          alert('You have been logged out by the administrator.');
+          setTimeout(() => {
+            alert('You have been logged out by the administrator.');
+          }, 100);
         }
       } catch (err) {
         console.error('Error checking force logout status:', err);
@@ -421,12 +424,15 @@ export default function Layout() {
         schema: 'public',
         table: 'user_activity',
         filter: `user_id=eq.${user.id}`
-      }, async (payload) => {
+      }, (payload) => {
         if (payload.new && payload.new.force_logout === true) {
-          await supabase.from('user_activity').update({ force_logout: false }).eq('user_id', user.id);
-          await supabase.auth.signOut();
+          // Instantly redirect and sign out without waiting for network updates
+          supabase.from('user_activity').update({ force_logout: false }).eq('user_id', user.id);
+          supabase.auth.signOut();
           navigate('/login');
-          alert('You have been logged out by the administrator.');
+          setTimeout(() => {
+            alert('You have been logged out by the administrator.');
+          }, 100);
         }
       })
       .subscribe();
@@ -594,7 +600,7 @@ export default function Layout() {
           <div className="font-medium font-mono text-xs text-dark-muted tracking-wide flex items-center gap-3">
             <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
             <span className="text-primary/40 hidden sm:inline">|</span>
-            <span className="text-primary font-sans text-[10px] font-semibold bg-primary/10 border border-primary/20 rounded px-2 py-0.5 whitespace-nowrap">v1.2.5 Live</span>
+            <span className="text-primary font-sans text-[10px] font-semibold bg-primary/10 border border-primary/20 rounded px-2 py-0.5 whitespace-nowrap">v1.2.6 Live</span>
           </div>
           <div className="flex items-center space-x-2">
             <button

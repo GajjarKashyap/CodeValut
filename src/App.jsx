@@ -14,6 +14,9 @@ import Archive from './pages/Archive';
 import ChatDashboard from './pages/ChatDashboard';
 import ChatRoom from './pages/ChatRoom';
 import NotFound from './pages/NotFound';
+import Forbidden from './pages/Forbidden';
+import ServerError from './pages/ServerError';
+import NetworkError from './pages/NetworkError';
 import DownloadApp from './pages/DownloadApp';
 import { RefreshCw, Download, Settings as SettingsIcon, X } from 'lucide-react';
 
@@ -34,26 +37,13 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-dark-bg text-white flex items-center justify-center p-6 font-sans">
-          <div className="max-w-md w-full text-center space-y-6 bg-dark-surface border border-red-500/20 p-8 rounded-2xl shadow-xl">
-            <div className="bg-red-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-red-500 font-bold text-2xl animate-pulse">
-              ⚠️
-            </div>
-            <h1 className="text-xl font-bold font-serif text-white">Something went wrong</h1>
-            <p className="text-dark-muted text-xs font-mono leading-relaxed bg-dark-bg p-3 rounded-lg border border-dark-border text-left overflow-x-auto max-h-40">
-              {this.state.error?.toString() || "Fatal execution exception"}
-            </p>
-            <button
-              onClick={() => {
-                localStorage.removeItem('codevault_last_active_route');
-                window.location.reload();
-              }}
-              className="w-full bg-primary hover:bg-primary/95 text-dark-bg font-bold py-2.5 rounded-lg transition-transform active:scale-95 text-sm cursor-pointer"
-            >
-              Restart App
-            </button>
-          </div>
-        </div>
+        <ServerError 
+          error={this.state.error} 
+          onRestart={() => {
+            localStorage.removeItem('codevault_last_active_route');
+            window.location.reload();
+          }} 
+        />
       );
     }
     return this.props.children;
@@ -242,6 +232,10 @@ function App() {
               <Route path="archive" element={<Archive />} />
               <Route path="settings" element={<Settings />} />
             </Route>
+            <Route path="/404" element={<NotFound />} />
+            <Route path="/403" element={<Forbidden />} />
+            <Route path="/500" element={<ServerError />} />
+            <Route path="/offline" element={<NetworkError />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Router>

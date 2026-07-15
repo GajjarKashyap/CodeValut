@@ -1,10 +1,11 @@
 {
-  "version": "1.3.3",
+  "version": "1.3.4",
   "min_version": "1.0.0",
   "release_date": "2026-06-27",
   "release_notes": "Mobile navigation drawer overhaul, haptic feedbacks, offline auto-syncing, keyboard avoidance, and custom error recovery.",
-  "title": "v1.3.3 Giphy Sticker Lock",
+  "title": "v1.3.4 Blocked Login Popup",
   "changelog": [
-    "Replaced color screen and GIF with black screen and dual Giphy sticker embeds"
+    "Removed full-screen lock overlay",
+    "Added blocked user check during login with \"Your account is blocked by the Administrator\" popup modal"
   ]
 }

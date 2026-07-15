@@ -379,7 +379,7 @@ export default function SessionForm() {
         <div>
           <div className="flex justify-between items-center mb-1.5">
             <InputLabel>Code</InputLabel>
-            <CodeToolbar code={formData.code} title={formData.title} language={formData.subject} onShare={() => setShareModalOpen(true)} showShare={!!(isEdit && formData.share_id && formData.share_mode !== 'private')} />
+            <CodeToolbar code={formData.code} title={formData.title} language={formData.subject} onShare={() => setShareModalOpen(true)} showShare={!!(Boolean(id) && formData.share_id && formData.share_mode !== 'private')} />
           </div>
           {useSimpleEditor ? (
             <textarea

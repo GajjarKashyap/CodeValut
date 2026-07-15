@@ -515,6 +515,13 @@ export default function Share() {
           </div>
         </div>
       )}
+      <ShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        title={session?.title}
+        language={session?.subject}
+        shareUrl={session?.share_id ? window.location.origin + import.meta.env.BASE_URL + '#/share/' + session.share_id : ''}
+      />
     </div>
   );
 }

@@ -444,6 +444,13 @@ export default function SessionForm() {
           <textarea value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} rows={5} className={inputClass + ' resize-y'} placeholder="Observations, key points, exam tips..." />
         </div>
       </form>
+      <ShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        title={formData.title}
+        language={formData.subject}
+        shareUrl={formData.share_id ? window.location.origin + import.meta.env.BASE_URL + '#/share/' + formData.share_id : ''}
+      />
     </div>
   );
 }

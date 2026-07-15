@@ -443,6 +443,13 @@ export default function SessionList({ filter }) {
           </button>
         </div>
       )}
+      <ShareModal
+        isOpen={!!shareModalSession}
+        onClose={() => setShareModalSession(null)}
+        title={shareModalSession?.title}
+        language={shareModalSession?.subject}
+        shareUrl={shareModalSession ? window.location.origin + import.meta.env.BASE_URL + '#/share/' + shareModalSession.share_id : ''}
+      />
     </div>
   );
 }

@@ -407,8 +407,8 @@ export default function Layout() {
           
         if (!error && data && (data.force_logout === true || data.is_blocked === true)) {
           const wasBlocked = data.is_blocked === true;
-          supabase.from('user_activity').update({ force_logout: false }).eq('user_id', user.id);
-          supabase.auth.signOut();
+          try { await supabase.from('user_activity').update({ force_logout: false }).eq('user_id', user.id); } catch(e) {}
+          await supabase.auth.signOut();
           navigate(`/login${wasBlocked ? '?blocked=true' : ''}`);
         }
       } catch (err) {
@@ -428,8 +428,8 @@ export default function Layout() {
       }, (payload) => {
         if (payload.new && (payload.new.force_logout === true || payload.new.is_blocked === true)) {
           const wasBlocked = payload.new.is_blocked === true;
-          supabase.from('user_activity').update({ force_logout: false }).eq('user_id', user.id);
-          supabase.auth.signOut();
+          try { await supabase.from('user_activity').update({ force_logout: false }).eq('user_id', user.id); } catch(e) {}
+          await supabase.auth.signOut();
           navigate(`/login${wasBlocked ? '?blocked=true' : ''}`);
         }
       })
@@ -598,7 +598,7 @@ export default function Layout() {
           <div className="font-medium font-mono text-xs text-dark-muted tracking-wide flex items-center gap-3">
             <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
             <span className="text-primary/40 hidden sm:inline">|</span>
-            <span className="text-primary font-sans text-[10px] font-semibold bg-primary/10 border border-primary/20 rounded px-2 py-0.5 whitespace-nowrap">v1.3.4 Live</span>
+            <span className="text-primary font-sans text-[10px] font-semibold bg-primary/10 border border-primary/20 rounded px-2 py-0.5 whitespace-nowrap">v1.3.5 Live</span>
           </div>
           <div className="flex items-center space-x-2">
             <button

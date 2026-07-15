@@ -136,7 +136,7 @@ export default function Dashboard() {
     try {
       const { error } = await supabase
         .from('user_activity')
-        .update({ is_blocked: false })
+        .update({ is_blocked: false, force_logout: false })
         .eq('user_id', userId);
       if (error) throw error;
       
@@ -147,7 +147,7 @@ export default function Dashboard() {
         details: 'Admin unblocked student'
       });
       
-      setAdminUsersActivity(prev => prev.map(a => a.user_id === userId ? { ...a, is_blocked: false } : a));
+      setAdminUsersActivity(prev => prev.map(a => a.user_id === userId ? { ...a, is_blocked: false, force_logout: false } : a));
     } catch (err) {
       console.error('Error unblocking user:', err);
       alert('Failed: ' + err.message);
@@ -185,7 +185,7 @@ export default function Dashboard() {
   const handleUnblockSession = async (id) => {
     const { error } = await supabase
       .from('sessions')
-      .update({ is_blocked: false })
+      .update({ is_blocked: false, force_logout: false })
       .eq('id', id);
     if (!error) {
       setReportedSessions(prev => prev.map(s => s.id === id ? { ...s, is_blocked: false } : s));

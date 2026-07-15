@@ -48,7 +48,7 @@ export default function Login() {
       try {
         const { data: activityData } = await supabase
           .from('user_activity')
-          .select('is_blocked')
+          .select('is_blocked, force_logout')
           .eq('user_id', data.user.id)
           .single();
 
@@ -57,6 +57,14 @@ export default function Login() {
           setBlockedModalOpen(true);
           setLoading(false);
           return;
+        }
+
+        // If not blocked but force_logout was left true from past block/logout, reset it right now upon login!
+        if (activityData?.force_logout === true) {
+          await supabase
+            .from('user_activity')
+            .update({ force_logout: false })
+            .eq('user_id', data.user.id);
         }
       } catch (err) {
         console.error('Error checking block status:', err);

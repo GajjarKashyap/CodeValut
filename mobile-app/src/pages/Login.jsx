@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
-import { Coffee, Mail, Lock, Terminal, Check, Copy, Fingerprint, LogIn } , AlertTriangle } from 'lucide-react';
+import { Coffee, Mail, Lock, Terminal, Check, Copy, Fingerprint, LogIn, AlertTriangle } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');

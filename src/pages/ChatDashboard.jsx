@@ -142,9 +142,7 @@ export default function ChatDashboard() {
           .from('group_messages')
           .select('content, created_at')
           .eq('group_id', gm.group_id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
+          .order('created_at', { ascending: false }).limit(1).maybeSingle();
 
         // If direct message, figure out the other person's name
         let chatName = gm.groups.name;
@@ -153,15 +151,13 @@ export default function ChatDashboard() {
             .from('group_members')
             .select('user_id')
             .eq('group_id', gm.group_id)
-            .neq('user_id', user.id)
-            .single();
+            .neq('user_id', user.id).limit(1).maybeSingle();
             
           if (otherMember) {
             const { data: otherUser } = await supabase
               .from('user_activity')
               .select('username, email')
-              .eq('user_id', otherMember.user_id)
-              .single();
+              .eq('user_id', otherMember.user_id).maybeSingle();
             if (otherUser) {
               chatName = otherUser.username || otherUser.email.split('@')[0];
             }

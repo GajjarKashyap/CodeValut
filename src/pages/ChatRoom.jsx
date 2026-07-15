@@ -196,10 +196,7 @@ export default function ChatRoom() {
   const fetchGroupDetails = async () => {
     try {
       const { data: groupData, error: groupError } = await supabase
-        .from('groups')
-        .select('*')
-        .eq('id', chatId)
-        .single();
+        .from('groups').select('*').eq('id', chatId).maybeSingle();
         
       if (groupError) throw groupError;
       setGroup(groupData);
@@ -207,9 +204,7 @@ export default function ChatRoom() {
       const { data: memberData } = await supabase
         .from('group_members')
         .select('role')
-        .eq('group_id', chatId)
-        .eq('user_id', user.id)
-        .single();
+        .eq('group_id', chatId).eq('user_id', user.id).maybeSingle();
         
       if (memberData) {
         setCurrentUserRole(memberData.role);

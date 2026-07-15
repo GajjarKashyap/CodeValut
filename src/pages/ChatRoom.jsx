@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Send, Paperclip, MoreVertical, ShieldAlert, X, Coffee, Database, Search, Code, Terminal, Users, UserPlus, Check, Trash2, Edit2, Copy, Edit3, CornerUpLeft, SmilePlus } from 'lucide-react';
+import { ArrowLeft, Send, Paperclip, MoreVertical, ShieldAlert, X, Coffee, Database, Search, Code, Terminal, Users, UserPlus, Check, Trash2, Edit2, Copy, Edit3, CornerUpLeft, SmilePlus , CheckSquare, Square } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function ChatRoom() {
@@ -45,6 +45,8 @@ export default function ChatRoom() {
   const [snippetData, setSnippetData] = useState({ subject: 'Java', title: 'Quick Snippet', aim: '', code: '', output: '' });
   
   const messagesEndRef = useRef(null);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedMessageIds, setSelectedMessageIds] = useState([]);
 
   useEffect(() => {
     fetchGroupDetails();
@@ -540,6 +542,37 @@ export default function ChatRoom() {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (selectedMessageIds.length === 0) return;
+    if (!window.confirm(`Are you sure you want to permanently delete ${selectedMessageIds.length} selected message(s)?`)) return;
+    
+    try {
+      const { error } = await supabase
+        .from('group_messages')
+        .delete()
+        .in('id', selectedMessageIds);
+      if (error) throw error;
+      
+      setMessages(prev => prev.filter(m => !selectedMessageIds.includes(m.id)));
+      setSelectedMessageIds([]);
+      setIsSelectionMode(false);
+    } catch (err) {
+      console.error('Error deleting messages in bulk:', err);
+      alert('Failed to delete selected messages: ' + err.message);
+    }
+  };
+
+  const toggleSelectAllEligible = () => {
+    const isAdmin = user?.email?.trim()?.toLowerCase() === 'admin@admin.com' || currentUserRole === 'admin';
+    const eligibleIds = messages.filter(m => isAdmin || m.user_id === user.id).map(m => m.id);
+    
+    if (selectedMessageIds.length === eligibleIds.length && eligibleIds.length > 0) {
+      setSelectedMessageIds([]);
+    } else {
+      setSelectedMessageIds(eligibleIds);
+    }
+  };
+
   const handleDeleteMessage = async (messageId) => {
     if (!window.confirm("Are you sure you want to delete this message?")) return;
     try {
@@ -596,7 +629,22 @@ export default function ChatRoom() {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
+          <button 
+            onClick={() => {
+              setIsSelectionMode(!isSelectionMode);
+              if (isSelectionMode) setSelectedMessageIds([]);
+            }}
+            className={`px-2.5 py-1.5 rounded-lg transition-all shrink-0 flex items-center gap-1.5 text-xs font-mono font-bold cursor-pointer border ${
+              isSelectionMode 
+                ? 'bg-primary border-primary text-dark-bg shadow-md' 
+                : 'bg-dark-surface border-dark-border text-dark-muted hover:text-white hover:border-primary/50'
+            }`}
+            title="Select Messages for Bulk Deletion"
+          >
+            <CheckSquare size={16} />
+            <span className="hidden sm:inline">{isSelectionMode ? 'Done' : 'Select'}</span>
+          </button>
           {currentUserRole === 'admin' && !group?.is_direct_message && (
             <button 
               onClick={handleOpenManageModal}
@@ -622,6 +670,40 @@ export default function ChatRoom() {
       </header>
 
       <main className="flex-1 overflow-y-auto p-4 z-10 flex flex-col gap-3">
+        {isSelectionMode && (
+          <div className="sticky top-0 bg-dark-surface/95 backdrop-blur-md border border-primary/40 px-4 py-3 rounded-xl flex flex-wrap items-center justify-between gap-3 z-30 shadow-2xl animate-fadeIn">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={toggleSelectAllEligible}
+                className="text-xs font-mono font-bold text-primary hover:bg-primary/20 bg-primary/10 border border-primary/30 px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
+              >
+                <CheckSquare size={14} />
+                <span>
+                  {(() => {
+                    const isAdmin = user?.email?.trim()?.toLowerCase() === 'admin@admin.com' || currentUserRole === 'admin';
+                    const eligibleCount = messages.filter(m => isAdmin || m.user_id === user.id).length;
+                    return selectedMessageIds.length === eligibleCount && eligibleCount > 0 ? 'Deselect All' : 'Select All My Messages';
+                  })()}
+                </span>
+              </button>
+              <span className="text-xs font-sans text-white font-semibold">
+                <span className="text-primary font-mono font-bold text-sm">{selectedMessageIds.length}</span> selected
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleBulkDelete}
+                disabled={selectedMessageIds.length === 0}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white text-xs font-bold rounded-lg transition-all shadow-md cursor-pointer disabled:cursor-not-allowed"
+              >
+                <Trash2 size={14} />
+                <span>Delete Selected</span>
+              </button>
+            </div>
+          </div>
+        )}
         <div className="flex justify-center mb-4">
           <span className="bg-primary/10 border border-primary/20 text-primary text-[10px] font-mono px-3 py-1.5 rounded-lg text-center max-w-xs shadow-md">
             Messages and shared code sessions are secured with CodeVault encryption.
@@ -630,23 +712,57 @@ export default function ChatRoom() {
 
         {messages.map((msg) => {
           const isMine = msg.user_id === user.id;
+          const canDelete = isMine || user?.email?.trim()?.toLowerCase() === 'admin@admin.com' || currentUserRole === 'admin';
+          const isSelected = selectedMessageIds.includes(msg.id);
+
           return (
             <div 
               key={msg.id} 
-              className={`flex flex-col w-full max-w-[95%] sm:max-w-[85%] md:max-w-[75%] ${isMine ? 'self-end' : 'self-start'}`}
+              className={`flex items-start gap-2.5 w-full max-w-[95%] sm:max-w-[85%] md:max-w-[75%] ${isMine ? 'self-end flex-row-reverse' : 'self-start'}`}
             >
+              {isSelectionMode && canDelete && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isSelected) {
+                      setSelectedMessageIds(prev => prev.filter(id => id !== msg.id));
+                    } else {
+                      setSelectedMessageIds(prev => [...prev, msg.id]);
+                    }
+                  }}
+                  className={`mt-2 p-1.5 rounded-lg border transition-all cursor-pointer shrink-0 shadow-sm ${
+                    isSelected 
+                      ? 'bg-primary border-primary text-dark-bg scale-105' 
+                      : 'bg-dark-surface border-dark-border text-transparent hover:border-primary/50'
+                  }`}
+                  title="Select message"
+                >
+                  <CheckSquare size={16} className={isSelected ? 'opacity-100' : 'opacity-0'} />
+                </button>
+              )}
+              <div className={`flex flex-col min-w-0 flex-1 ${isMine ? 'items-end' : 'items-start'}`}>
               {!group?.is_direct_message && !isMine && (
                 <span className="text-[10px] font-mono text-dark-muted ml-1 mb-1">
                   {profiles[msg.user_id]?.display_name || profiles[msg.user_id]?.username || `User ${msg.user_id.substring(0, 5)}`}
                 </span>
               )}
               <div 
+                onClick={() => {
+                  if (isSelectionMode && canDelete) {
+                    if (isSelected) {
+                      setSelectedMessageIds(prev => prev.filter(id => id !== msg.id));
+                    } else {
+                      setSelectedMessageIds(prev => [...prev, msg.id]);
+                    }
+                  }
+                }}
                 className={`relative group px-4 py-2.5 rounded-2xl shadow-md text-sm font-sans flex flex-col gap-2 ${
-
+                  isSelectionMode && canDelete ? 'cursor-pointer hover:ring-2 hover:ring-primary/60 transition-all' : ''
+                } ${
                   isMine 
                     ? 'bg-[#0f211c] text-white border border-[#1a3830] rounded-tr-sm' 
                     : 'bg-dark-surface text-white border border-dark-border rounded-tl-sm'
-                }`}
+                } ${isSelected ? 'ring-2 ring-primary bg-primary/20 border-primary' : ''}`}
               >
                 
                 {/* Reply/React Hover Buttons */}
@@ -777,6 +893,7 @@ export default function ChatRoom() {
                   </div>
                 )}
 
+              </div>
               </div>
             </div>
           );

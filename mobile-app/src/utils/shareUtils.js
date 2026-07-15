@@ -8,5 +8,6 @@ export const getTelegramShareUrl = (title, url) => {
 };
 
 export const getQrCodeUrl = (url, size = '220x220') => {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}&data=${encodeURIComponent(url)}&color=C8AB7E&bgcolor=1E222A`;
+  if (!url) return '';
+  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}&data=${encodeURIComponent(url)}&color=000000&bgcolor=FFFFFF&margin=10`;
 };

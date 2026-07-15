@@ -3,7 +3,10 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import Editor from '@monaco-editor/react';
-import { Coffee, Database, Copy, Download, Globe, AlertCircle, Check, Tag, User, Calendar, Clock, Mail, Eye } from 'lucide-react';
+import { Coffee, Database, Copy, Download, Globe, AlertCircle, Check, Tag, User, Calendar, Clock, Mail, Eye, Share2 } from 'lucide-react';
+import CodeToolbar from '../components/code/CodeToolbar';
+import ShareModal from '../components/share/ShareModal';
+import { useCodeFontSize } from '../hooks/useCodeFontSize';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function Share() {
@@ -12,6 +15,8 @@ export default function Share() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copiedSection, setCopiedSection] = useState('');
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const { fontSize } = useCodeFontSize();
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [useSimpleEditor, setUseSimpleEditor] = useState(
@@ -314,11 +319,11 @@ export default function Share() {
                   {useSimpleEditor ? 'Rich View' : 'Simple View'}
                 </button>
               </div>
-              <CopyButton label="Copy Code" onClick={() => copyToClipboard(session.code, 'code')} isCopied={copiedSection === 'code'} />
+              <CodeToolbar code={session.code} title={session.title} language={session.subject} onShare={() => setShareModalOpen(true)} showShare={true} />
             </div>
 
             {useSimpleEditor ? (
-              <pre className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 overflow-auto font-mono text-sm leading-relaxed text-left text-[#e0e0e0] whitespace-pre h-[400px]">
+              <pre style={{ fontSize: `${fontSize}px` }} className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 overflow-auto font-mono leading-relaxed text-left text-[#e0e0e0] whitespace-pre h-[400px]">
                 <code>{session.code || ''}</code>
               </pre>
             ) : (
@@ -328,7 +333,7 @@ export default function Share() {
                   language={session.subject === 'Java' ? 'java' : 'javascript'}
                   theme="vs-dark"
                   value={session.code || ''}
-                  options={{ readOnly: true, minimap: { enabled: false }, fontSize: 14, scrollBeyondLastLine: false, automaticLayout: true }}
+                  options={{ readOnly: true, minimap: { enabled: false }, fontSize: fontSize, scrollBeyondLastLine: false, automaticLayout: true }}
                 />
               </div>
             )}
@@ -348,11 +353,11 @@ export default function Share() {
                     {useSimpleEditor ? 'Rich View' : 'Simple View'}
                   </button>
                 </div>
-                <CopyButton label="Copy Output" onClick={() => copyToClipboard(session.output, 'output')} isCopied={copiedSection === 'output'} />
+                <CodeToolbar code={session.output} title={(session.title || 'snippet') + '_output'} language="txt" />
               </div>
 
               {useSimpleEditor ? (
-                <pre className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 overflow-auto font-mono text-sm leading-relaxed text-[#e0e0e0] whitespace-pre h-[200px]">
+                <pre style={{ fontSize: `${fontSize}px` }} className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 overflow-auto font-mono leading-relaxed text-[#e0e0e0] whitespace-pre h-[200px]">
                   <code>{session.output}</code>
                 </pre>
               ) : (
@@ -362,7 +367,7 @@ export default function Share() {
                     language="plaintext"
                     theme="vs-dark"
                     value={session.output || ''}
-                    options={{ readOnly: true, minimap: { enabled: false }, fontSize: 14, lineNumbers: 'off', scrollBeyondLastLine: false, automaticLayout: true }}
+                    options={{ readOnly: true, minimap: { enabled: false }, fontSize: fontSize, lineNumbers: 'off', scrollBeyondLastLine: false, automaticLayout: true }}
                   />
                 </div>
               )}

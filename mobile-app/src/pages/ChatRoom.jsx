@@ -721,11 +721,9 @@ export default function ChatRoom() {
                           <div className="flex items-center gap-1.5 text-[9px] text-primary font-mono uppercase tracking-widest">
                             <Code size={10} /> Code Snippet
                           </div>
-                          <button onClick={() => navigator.clipboard.writeText(msg.sessions.code)} className="text-dark-muted hover:text-primary p-0.5 rounded cursor-pointer" title="Copy Code">
-                            <Copy size={12} />
-                          </button>
+                          <CodeToolbar code={msg.sessions.code} title={msg.sessions.title} language={msg.sessions.subject} />
                         </div>
-                        <pre className="p-2.5 text-[11px] md:text-[12px] font-mono text-gray-300 overflow-x-auto w-full max-h-[40vh]">
+                        <pre style={{ fontSize: `${fontSize}px` }} className="p-2.5 font-mono text-gray-300 overflow-x-auto w-full max-h-[40vh]">
                           <code>{msg.sessions.code}</code>
                         </pre>
                       </div>
@@ -737,11 +735,9 @@ export default function ChatRoom() {
                           <div className="flex items-center gap-1.5 text-[9px] text-green-400 font-mono uppercase tracking-widest">
                             <Terminal size={10} /> Terminal Output
                           </div>
-                          <button onClick={() => navigator.clipboard.writeText(msg.sessions.output)} className="text-dark-muted hover:text-primary p-0.5 rounded cursor-pointer" title="Copy Output">
-                            <Copy size={12} />
-                          </button>
+                          <CodeToolbar code={msg.sessions.output} title={(msg.sessions.title || 'snippet') + '_output'} language="txt" />
                         </div>
-                        <pre className="p-2.5 text-[11px] md:text-[12px] font-mono text-green-300 overflow-x-auto w-full max-h-[30vh] bg-[#0a1410]/80">
+                        <pre style={{ fontSize: `${fontSize}px` }} className="p-2.5 font-mono text-green-300 overflow-x-auto w-full max-h-[30vh] bg-[#0a1410]/80">
                           <code>{msg.sessions.output}</code>
                         </pre>
                       </div>

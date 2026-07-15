@@ -4,6 +4,9 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import Editor from '@monaco-editor/react';
 import { Save, Download, Copy, Clock, Share2, Globe, Check, Tag, ShieldCheck, Zap } from 'lucide-react';
+import CodeToolbar from '../components/code/CodeToolbar';
+import ShareModal from '../components/share/ShareModal';
+import { useCodeFontSize } from '../hooks/useCodeFontSize';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function SessionForm() {
@@ -16,6 +19,8 @@ export default function SessionForm() {
   const [draftRecovered, setDraftRecovered] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const { fontSize } = useCodeFontSize();
   const [copiedField, setCopiedField] = useState('');
   const [useSimpleEditor, setUseSimpleEditor] = useState(() => {
     const saved = localStorage.getItem('codevault_editor_mode');
@@ -284,8 +289,8 @@ export default function SessionForm() {
                           value={window.location.origin + import.meta.env.BASE_URL + '#/share/' + formData.share_id}
                           className="bg-transparent text-xs text-dark-text outline-none w-full font-mono"
                         />
-                        <button type="button" onClick={() => copyShareLink(window.location.origin + import.meta.env.BASE_URL + '#/share/' + formData.share_id)} className="p-1 text-primary hover:bg-primary/10 rounded transition-colors cursor-pointer">
-                          {copiedLink ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
+                        <button type="button" onClick={() => setShareModalOpen(true)} className="p-1.5 text-primary hover:bg-primary/10 rounded transition-colors cursor-pointer flex items-center gap-1 text-xs font-mono" title="Share Options">
+                          <Share2 size={14} /><span>Share</span>
                         </button>
                       </div>
                     )}
@@ -374,17 +379,14 @@ export default function SessionForm() {
         <div>
           <div className="flex justify-between items-center mb-1.5">
             <InputLabel>Code</InputLabel>
-            <button type="button" onClick={() => copyToClipboard(formData.code, 'code')} className="text-xs flex items-center gap-1 text-primary hover:text-primary/80 font-sans transition-colors">
-              {copiedField === 'code' ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
-              {copiedField === 'code' ? 'Copied!' : 'Copy Code'}
-            </button>
+            <CodeToolbar code={formData.code} title={formData.title} language={formData.subject} onShare={() => setShareModalOpen(true)} showShare={!!(isEdit && formData.share_id && formData.share_mode !== 'private')} />
           </div>
           {useSimpleEditor ? (
             <textarea
               value={formData.code}
               onChange={e => setFormData({...formData, code: e.target.value})}
               onKeyDown={handleCodeTab}
-              className="w-full bg-dark-surface border border-dark-border rounded-xl px-4 py-3 text-white font-mono text-sm leading-relaxed h-[400px] resize-y transition-colors"
+              style={{ fontSize: `${fontSize}px` }} className="w-full bg-dark-surface border border-dark-border rounded-xl px-4 py-3 text-white font-mono leading-relaxed h-[400px] resize-y transition-colors"
               placeholder="// Write your Java/MongoDB code here..."
               spellCheck={false}
             />
@@ -396,7 +398,7 @@ export default function SessionForm() {
                 theme="vs-dark"
                 value={formData.code}
                 onChange={(value) => setFormData({...formData, code: value || ''})}
-                options={{ minimap: { enabled: false }, fontSize: 14, scrollBeyondLastLine: false }}
+                options={{ minimap: { enabled: false }, fontSize: fontSize, scrollBeyondLastLine: false }}
               />
             </div>
           )}
@@ -406,10 +408,7 @@ export default function SessionForm() {
         <div>
           <div className="flex justify-between items-center mb-1.5">
             <InputLabel>Output</InputLabel>
-            <button type="button" onClick={() => copyToClipboard(formData.output, 'output')} className="text-xs flex items-center gap-1 text-primary hover:text-primary/80 font-sans transition-colors">
-              {copiedField === 'output' ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
-              {copiedField === 'output' ? 'Copied!' : 'Copy Output'}
-            </button>
+            <CodeToolbar code={formData.output} title={(formData.title || 'snippet') + '_output'} language="txt" />
           </div>
           {useSimpleEditor ? (
             <textarea
@@ -427,7 +426,7 @@ export default function SessionForm() {
                 theme="vs-dark"
                 value={formData.output}
                 onChange={(value) => setFormData({...formData, output: value || ''})}
-                options={{ minimap: { enabled: false }, fontSize: 14, lineNumbers: 'off', scrollBeyondLastLine: false }}
+                options={{ minimap: { enabled: false }, fontSize: fontSize, lineNumbers: 'off', scrollBeyondLastLine: false }}
               />
             </div>
           )}

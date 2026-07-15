@@ -5,6 +5,7 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Coffee, Database, Star, Clock, Trash2, Tag, Share2, Globe, Copy, Check, Eye } from 'lucide-react';
+import ShareModal from '../components/share/ShareModal';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function SessionList({ filter }) {
@@ -16,6 +17,7 @@ export default function SessionList({ filter }) {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [copiedId, setCopiedId] = useState(null);
+  const [shareModalSession, setShareModalSession] = useState(null);
   const [error, setError] = useState(null);
   const [startY, setStartY] = useState(0);
   const [refreshDist, setRefreshDist] = useState(0);
@@ -397,7 +399,7 @@ export default function SessionList({ filter }) {
                   ) : (
                     isShared && (
                       <button
-                        onClick={(e) => handleNativeShare(session.title, session.share_id, e)}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (session.share_id) setShareModalSession(session); }}
                         className={`p-2 rounded-lg transition-all border border-dark-border cursor-pointer flex items-center justify-center ${copiedId === session.share_id ? 'text-green-400 bg-green-500/10 border-green-500/30' : 'text-dark-muted hover:text-primary hover:bg-primary/10 hover:border-primary/20 bg-dark-surface'}`}
                         title={copiedId === session.share_id ? "Link Copied!" : "Share / Copy Link"}
                       >

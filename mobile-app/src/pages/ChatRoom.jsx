@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import CodeToolbar from '../components/code/CodeToolbar';
 import { ArrowLeft, Send, Paperclip, MoreVertical, ShieldAlert, X, Coffee, Database, Search, Code, Terminal, Users, UserPlus, Check, Trash2, Edit2, Copy, Edit3, CornerUpLeft, SmilePlus , CheckSquare, Square } from 'lucide-react';
 import { format } from 'date-fns';
 

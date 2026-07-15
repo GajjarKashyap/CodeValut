@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { MessageCircle, Plus, Users, Search, Mail, UserPlus, Clock, User, Settings } from 'lucide-react';
+import { MessageCircle, Plus, Users, Search, Mail, UserPlus, Clock, User, Settings , Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function ChatDashboard() {
@@ -41,6 +41,32 @@ export default function ChatDashboard() {
       supabase.removeChannel(channel);
     };
   }, [user]);
+
+  const handleDeleteChat = async (e, chat) => {
+    e.stopPropagation();
+    if (!window.confirm(`Are you sure you want to permanently delete the chat "${chat.name}" and all its messages?`)) return;
+    
+    try {
+      const { error } = await supabase.from('groups').delete().eq('id', chat.id);
+      if (error) throw error;
+      
+      setChats(prev => prev.filter(c => c.id !== chat.id));
+    } catch (err) {
+      console.error('Error deleting chat:', err);
+      if (chat.role !== 'admin' && !chat.is_direct_message) {
+        if (window.confirm("You are not an admin of this group, so you cannot delete it for everyone. Would you like to leave this group instead?")) {
+          const { error: leaveError } = await supabase.from('group_members').delete().eq('group_id', chat.id).eq('user_id', user.id);
+          if (!leaveError) {
+            setChats(prev => prev.filter(c => c.id !== chat.id));
+          } else {
+            alert('Failed to leave group: ' + leaveError.message);
+          }
+        }
+      } else {
+        alert('Failed to delete chat: ' + err.message);
+      }
+    }
+  };
 
   const fetchChats = async () => {
     try {
@@ -311,6 +337,14 @@ export default function ChatDashboard() {
                 </div>
                 <p className="text-sm text-dark-muted truncate">{chat.latestMessage}</p>
               </div>
+              <button
+                type="button"
+                onClick={(e) => handleDeleteChat(e, chat)}
+                className="p-2.5 text-dark-muted hover:text-red-400 hover:bg-dark-surface rounded-lg transition-all shrink-0 opacity-80 sm:opacity-0 group-hover:opacity-100 cursor-pointer"
+                title="Delete full chat"
+              >
+                <Trash2 size={18} />
+              </button>
             </div>
           ))
         )}

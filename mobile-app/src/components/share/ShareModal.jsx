@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Copy, Check, Share2, MessageCircle, Send } from 'lucide-react';
-import { getWhatsAppShareUrl, getTelegramShareUrl, getQrCodeUrl } from '../../utils/shareUtils';
+import { QRCodeSVG } from 'qrcode.react';
+import { getWhatsAppShareUrl, getTelegramShareUrl } from '../../utils/shareUtils';
 
 export default function ShareModal({ isOpen, onClose, title, language, shareUrl }) {
   const [copied, setCopied] = useState(false);
@@ -28,7 +29,6 @@ export default function ShareModal({ isOpen, onClose, title, language, shareUrl 
     }
   };
 
-  const qrUrl = getQrCodeUrl(shareUrl);
   const waUrl = getWhatsAppShareUrl(title, shareUrl);
   const tgUrl = getTelegramShareUrl(title, shareUrl);
 
@@ -45,23 +45,23 @@ export default function ShareModal({ isOpen, onClose, title, language, shareUrl 
           </button>
         </div>
 
-        <div className="flex flex-col items-center justify-center bg-dark-bg p-4 rounded-xl border border-dark-border">
+        <div className="flex flex-col items-center justify-center bg-dark-bg p-4 rounded-xl border border-dark-border min-h-[220px]">
           {shareUrl ? (
-            <>
-              <img 
-                src={qrUrl} 
-                alt="QR Code" 
-                className="w-[200px] h-[200px] rounded-lg shadow-md bg-white p-2 border border-primary/30 object-contain"
-                onError={(e) => {
-                  e.target.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareUrl)}`;
-                }}
-              />
-              <span className="text-[11px] text-dark-muted mt-2 font-mono">Scan QR to open directly on phone</span>
-            </>
+            <div className="flex flex-col items-center">
+              <div className="bg-white p-3.5 rounded-xl shadow-md border border-primary/30 flex items-center justify-center">
+                <QRCodeSVG 
+                  value={shareUrl} 
+                  size={180}
+                  level="M"
+                  includeMargin={false}
+                />
+              </div>
+              <span className="text-[11px] text-dark-muted mt-2.5 font-mono">Scan QR to open directly on phone</span>
+            </div>
           ) : (
-            <div className="w-[200px] h-[200px] flex flex-col items-center justify-center text-center p-4 text-dark-muted font-mono text-xs gap-2">
-              <span>No public link available.</span>
-              <span>Save and enable sharing (Public/Unlisted) to generate a QR code!</span>
+            <div className="w-[200px] h-[180px] flex flex-col items-center justify-center text-center p-3 text-dark-muted font-mono text-xs gap-2">
+              <span className="text-primary font-bold text-sm">Public Link Required</span>
+              <span>Please select Public or Unlisted under the Share menu and Save session to generate a QR code!</span>
             </div>
           )}
         </div>

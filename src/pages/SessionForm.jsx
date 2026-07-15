@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import Editor from '@monaco-editor/react';
-import { Save, Download, Copy, Clock, Share2, Globe, Check, Tag, ShieldCheck, Zap } from 'lucide-react';
+import { Save, Download, Copy, Clock, Share2, Globe, Check, Tag, ShieldCheck, Zap , QrCode } from 'lucide-react';
 import CodeToolbar from '../components/code/CodeToolbar';
 import ShareModal from '../components/share/ShareModal';
 import { useCodeFontSize } from '../hooks/useCodeFontSize';
@@ -248,7 +248,16 @@ export default function SessionForm() {
 
           {/* Share */}
           {id && (
-            <div className="relative font-sans">
+            <div className="relative font-sans flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShareModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/15 hover:bg-primary/25 text-primary rounded-lg border border-primary/30 transition-colors cursor-pointer text-sm font-mono font-bold shadow-sm active:scale-95"
+                title="Open QR Code & Share Modal"
+              >
+                <QrCode size={16} />
+                <span>QR</span>
+              </button>
               <button
                 type="button"
                 onClick={() => setShowShareMenu(!showShareMenu)}

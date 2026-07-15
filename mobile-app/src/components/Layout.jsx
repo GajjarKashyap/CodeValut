@@ -425,7 +425,7 @@ export default function Layout() {
         schema: 'public',
         table: 'user_activity',
         filter: `user_id=eq.${user.id}`
-      }, (payload) => {
+      }, async (payload) => {
         if (payload.new && (payload.new.force_logout === true || payload.new.is_blocked === true)) {
           const wasBlocked = payload.new.is_blocked === true;
           try { await supabase.from('user_activity').update({ force_logout: false }).eq('user_id', user.id); } catch(e) {}

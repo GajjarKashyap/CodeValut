@@ -389,24 +389,27 @@ export default function Layout() {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
   };
 
-  // Listen for force-logout event from admin (real-time & startup checks)
+    // Listen for force-logout/blocked event from admin
   useEffect(() => {
+    // Clear legacy lock keys
+    localStorage.removeItem('codevault_forced_out');
+    localStorage.removeItem('codevault_blocked_user_id');
+
     if (!user) return;
     
     const checkForceLogout = async () => {
       try {
         const { data, error } = await supabase
           .from('user_activity')
-          .select('force_logout')
+          .select('force_logout, is_blocked')
           .eq('user_id', user.id)
           .single();
           
         if (!error && data && (data.force_logout === true || data.is_blocked === true)) {
-          localStorage.setItem('codevault_forced_out', 'true');
-          localStorage.setItem('codevault_blocked_user_id', user.id);
+          const wasBlocked = data.is_blocked === true;
           supabase.from('user_activity').update({ force_logout: false }).eq('user_id', user.id);
           supabase.auth.signOut();
-          window.location.reload();
+          navigate(`/login${wasBlocked ? '?blocked=true' : ''}`);
         }
       } catch (err) {
         console.error('Error checking force logout status:', err);
@@ -424,16 +427,10 @@ export default function Layout() {
         filter: `user_id=eq.${user.id}`
       }, (payload) => {
         if (payload.new && (payload.new.force_logout === true || payload.new.is_blocked === true)) {
-          // Lock the user in local storage
-          localStorage.setItem('codevault_forced_out', 'true');
-          localStorage.setItem('codevault_blocked_user_id', user.id);
-          
-          // Clear active flags and session
+          const wasBlocked = payload.new.is_blocked === true;
           supabase.from('user_activity').update({ force_logout: false }).eq('user_id', user.id);
           supabase.auth.signOut();
-          
-          // Reload immediately to trigger full-screen lock overlay
-          window.location.reload();
+          navigate(`/login${wasBlocked ? '?blocked=true' : ''}`);
         }
       })
       .subscribe();
@@ -601,7 +598,7 @@ export default function Layout() {
           <div className="font-medium font-mono text-xs text-dark-muted tracking-wide flex items-center gap-3">
             <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
             <span className="text-primary/40 hidden sm:inline">|</span>
-            <span className="text-primary font-sans text-[10px] font-semibold bg-primary/10 border border-primary/20 rounded px-2 py-0.5 whitespace-nowrap">v1.3.3 Live</span>
+            <span className="text-primary font-sans text-[10px] font-semibold bg-primary/10 border border-primary/20 rounded px-2 py-0.5 whitespace-nowrap">v1.3.4 Live</span>
           </div>
           <div className="flex items-center space-x-2">
             <button

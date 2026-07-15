@@ -80,7 +80,7 @@ const ProtectedRoute = ({ children }) => {
 // ----------------------------------------------------
 // 3. Version Checker Overlay Component
 // ----------------------------------------------------
-const CURRENT_VERSION = '1.3.3';
+const CURRENT_VERSION = '1.3.4';
 
 function compareVersions(v1, v2) {
   const p1 = v1.replace(/^v/, '').split('.').map(Number);
@@ -205,70 +205,7 @@ function VersionChecker() {
 // ----------------------------------------------------
 // 4. Main App Routing & Setup
 // ----------------------------------------------------
-function BlockGuard({ children }) {
-  const [isBlocked, setIsBlocked] = useState(
-    localStorage.getItem('codevault_forced_out') === 'true'
-  );
 
-  useEffect(() => {
-    const blockedUserId = localStorage.getItem('codevault_blocked_user_id');
-    if (!blockedUserId) return;
-
-    const channel = supabase
-      .channel(`block_guard_${blockedUserId}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'user_activity',
-        filter: `user_id=eq.${blockedUserId}`
-      }, (payload) => {
-        if (payload.new && payload.new.is_blocked === false) {
-          localStorage.removeItem('codevault_forced_out');
-          localStorage.removeItem('codevault_blocked_user_id');
-          setIsBlocked(false);
-        }
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [isBlocked]);
-
-  if (isBlocked) {
-    return (
-      <div className="fixed inset-0 bg-black flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 z-[999999] overflow-y-auto md:overflow-hidden select-none p-6">
-        {/* Left/Top Sticker */}
-        <div className="w-[260px] h-[260px] sm:w-[350px] sm:h-[350px] relative flex-shrink-0">
-          <iframe 
-            src="https://giphy.com/embed/MksyvqJEf8yPK" 
-            width="100%" 
-            height="100%" 
-            style={{ position: 'absolute', pointerEvents: 'none' }} 
-            frameBorder="0" 
-            className="giphy-embed" 
-            allowFullScreen
-          ></iframe>
-        </div>
-        
-        {/* Right/Bottom Sticker */}
-        <div className="w-[260px] h-[260px] sm:w-[350px] sm:h-[350px] relative flex-shrink-0">
-          <iframe 
-            src="https://giphy.com/embed/8MTq4s5eCKVfa" 
-            width="100%" 
-            height="100%" 
-            style={{ position: 'absolute', pointerEvents: 'none' }} 
-            frameBorder="0" 
-            className="giphy-embed" 
-            allowFullScreen
-          ></iframe>
-        </div>
-      </div>
-    );
-  }
-
-  return children;
-}
 
 function App() {
   // Initialize default feature flags
@@ -287,8 +224,7 @@ function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <BlockGuard>
-          <Router>
+        <Router>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/download" element={<DownloadApp />} />
@@ -309,7 +245,6 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Router>
-        </BlockGuard>
         <VersionChecker />
       </AuthProvider>
     </ErrorBoundary>

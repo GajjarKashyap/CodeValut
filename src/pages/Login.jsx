@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
-import { Coffee, Mail, Lock, Terminal, Check, Copy, Smartphone, Fingerprint, LogIn } from 'lucide-react';
+import { Coffee, Mail, Lock, Terminal, Check, Copy, Smartphone, Fingerprint, LogIn } , AlertTriangle } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -12,6 +12,7 @@ export default function Login() {
   const { user } = useAuth();
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [copiedSection, setCopiedSection] = useState('');
+  const [blockedModalOpen, setBlockedModalOpen] = useState(window.location.search.includes('blocked=true') || window.location.hash.includes('blocked=true'));
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('codevault_theme') || 'original';
@@ -30,20 +31,61 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setBlockedModalOpen(false);
     
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
       setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (data?.user) {
+      try {
+        const { data: activityData } = await supabase
+          .from('user_activity')
+          .select('is_blocked')
+          .eq('user_id', data.user.id)
+          .single();
+
+        if (activityData?.is_blocked === true) {
+          await supabase.auth.signOut();
+          setBlockedModalOpen(true);
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error('Error checking block status:', err);
+      }
     }
     setLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-dark-bg text-dark-text flex items-center justify-center p-4 relative overflow-hidden bg-grid-pattern">
+      {blockedModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
+          <div className="bg-dark-surface border border-red-500/30 p-6 rounded-2xl max-w-sm w-full text-center space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-14 h-14 bg-red-500/10 rounded-full flex items-center justify-center mx-auto border border-red-500/20 text-red-400">
+              <AlertTriangle size={28} />
+            </div>
+            <h3 className="text-lg font-bold text-white font-serif">Account Blocked</h3>
+            <p className="text-dark-muted text-sm font-sans leading-relaxed">
+              Your account is blocked by the Administrator.
+            </p>
+            <button
+              onClick={() => setBlockedModalOpen(false)}
+              className="w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 py-2.5 rounded-xl font-medium text-sm transition-colors cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
       <style>{`
         @keyframes scanline {
           0% { bottom: 100%; }

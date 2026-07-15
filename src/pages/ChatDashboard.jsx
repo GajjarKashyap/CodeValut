@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { MessageCircle, Plus, Users, Search, Mail, UserPlus, Clock, User, Settings , Trash2 } from 'lucide-react';
+import { MessageCircle, Plus, Users, Search, Mail, UserPlus, Clock, User, Settings , Trash2, CheckSquare, Square } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function ChatDashboard() {
@@ -24,6 +24,9 @@ export default function ChatDashboard() {
   const [usernameInput, setUsernameInput] = useState('');
   const [currentUsername, setCurrentUsername] = useState('');
 
+  const [isGroupSelectMode, setIsGroupSelectMode] = useState(false);
+  const [selectedGroupIds, setSelectedGroupIds] = useState([]);
+
   useEffect(() => {
     fetchChats();
     
@@ -41,6 +44,31 @@ export default function ChatDashboard() {
       supabase.removeChannel(channel);
     };
   }, [user]);
+
+  const handleBulkDeleteGroups = async () => {
+    if (selectedGroupIds.length === 0) return;
+    if (!window.confirm(`Are you sure you want to delete or leave ${selectedGroupIds.length} selected chat(s)?`)) return;
+    
+    try {
+      for (const id of selectedGroupIds) {
+        const chat = chats.find(c => c.id === id);
+        if (!chat) continue;
+        
+        if (chat.role === 'admin' || chat.created_by === user.id || isAdmin || chat.is_direct_message) {
+          await supabase.from('groups').delete().eq('id', id);
+        } else {
+          await supabase.from('group_members').delete().eq('group_id', id).eq('user_id', user.id);
+        }
+      }
+      setChats(prev => prev.filter(c => !selectedGroupIds.includes(c.id)));
+      setSelectedGroupIds([]);
+      setIsGroupSelectMode(false);
+    } catch (err) {
+      console.error('Error deleting chats in bulk:', err);
+      alert('Error deleting some chats: ' + err.message);
+      fetchChats();
+    }
+  };
 
   const handleDeleteChat = async (e, chat) => {
     e.stopPropagation();
@@ -284,6 +312,21 @@ export default function ChatDashboard() {
             <Settings size={16} /> <span className="hidden sm:inline">{currentUsername || 'Set Username'}</span>
           </button>
           <button
+            onClick={() => {
+              setIsGroupSelectMode(!isGroupSelectMode);
+              if (isGroupSelectMode) setSelectedGroupIds([]);
+            }}
+            className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all cursor-pointer border ${
+              isGroupSelectMode 
+                ? 'bg-primary border-primary text-dark-bg shadow-md' 
+                : 'bg-dark-bg hover:bg-dark-surface text-dark-muted hover:text-white border-dark-border'
+            }`}
+            title="Select Groups for Bulk Deletion"
+          >
+            <CheckSquare size={16} />
+            <span>{isGroupSelectMode ? 'Done' : 'Select'}</span>
+          </button>
+          <button
             onClick={() => setShowNewChatModal(true)}
             className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-semibold transition-colors cursor-pointer"
           >
@@ -294,6 +337,38 @@ export default function ChatDashboard() {
 
       {/* Chat List */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
+        {isGroupSelectMode && (
+          <div className="sticky top-0 bg-dark-surface/95 backdrop-blur-md border border-primary/40 px-4 py-3 rounded-xl flex flex-wrap items-center justify-between gap-3 z-30 shadow-2xl mb-3 animate-fadeIn">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  if (selectedGroupIds.length === chats.length && chats.length > 0) {
+                    setSelectedGroupIds([]);
+                  } else {
+                    setSelectedGroupIds(chats.map(c => c.id));
+                  }
+                }}
+                className="text-xs font-mono font-bold text-primary hover:bg-primary/20 bg-primary/10 border border-primary/30 px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
+              >
+                <CheckSquare size={14} />
+                <span>{selectedGroupIds.length === chats.length && chats.length > 0 ? 'Deselect All' : 'Select All'}</span>
+              </button>
+              <span className="text-xs font-sans text-white font-semibold">
+                <span className="text-primary font-mono font-bold text-sm">{selectedGroupIds.length}</span> selected
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleBulkDeleteGroups}
+              disabled={selectedGroupIds.length === 0}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white text-xs font-bold rounded-lg transition-all shadow-md cursor-pointer disabled:cursor-not-allowed"
+            >
+              <Trash2 size={14} />
+              <span>Delete Selected</span>
+            </button>
+          </div>
+        )}
         {loading ? (
           <div className="flex justify-center py-10">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
@@ -315,12 +390,44 @@ export default function ChatDashboard() {
             </button>
           </div>
         ) : (
-          chats.map(chat => (
+          chats.map(chat => {
+            const isSelected = selectedGroupIds.includes(chat.id);
+            return (
             <div 
               key={chat.id}
-              onClick={() => navigate(`/chat/${chat.id}`)}
-              className="group flex items-center gap-4 p-4 bg-dark-bg border border-dark-border hover:border-primary/40 rounded-xl cursor-pointer transition-all"
+              onClick={() => {
+                if (isGroupSelectMode) {
+                  if (isSelected) {
+                    setSelectedGroupIds(prev => prev.filter(id => id !== chat.id));
+                  } else {
+                    setSelectedGroupIds(prev => [...prev, chat.id]);
+                  }
+                } else {
+                  navigate(`/chat/${chat.id}`);
+                }
+              }}
+              className={`group flex items-center gap-3.5 p-4 bg-dark-bg border rounded-xl cursor-pointer transition-all ${
+                isSelected ? 'border-primary ring-2 ring-primary/40 bg-primary/10' : 'border-dark-border hover:border-primary/40'
+              }`}
             >
+              {isGroupSelectMode && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (isSelected) {
+                      setSelectedGroupIds(prev => prev.filter(id => id !== chat.id));
+                    } else {
+                      setSelectedGroupIds(prev => [...prev, chat.id]);
+                    }
+                  }}
+                  className={`p-1.5 rounded-lg border transition-all cursor-pointer shrink-0 shadow-sm ${
+                    isSelected ? 'bg-primary border-primary text-dark-bg' : 'bg-dark-surface border-dark-border text-transparent hover:border-primary/50'
+                  }`}
+                >
+                  <CheckSquare size={16} className={isSelected ? 'opacity-100' : 'opacity-0'} />
+                </button>
+              )}
               <div className="w-12 h-12 rounded-full bg-dark-surface border border-dark-border flex items-center justify-center shrink-0">
                 {chat.is_direct_message ? (
                   <UserPlus size={20} className="text-primary/70" />
@@ -339,14 +446,19 @@ export default function ChatDashboard() {
               </div>
               <button
                 type="button"
-                onClick={(e) => handleDeleteChat(e, chat)}
-                className="p-2.5 text-dark-muted hover:text-red-400 hover:bg-dark-surface rounded-lg transition-all shrink-0 opacity-80 sm:opacity-0 group-hover:opacity-100 cursor-pointer"
-                title="Delete full chat"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteChat(e, chat);
+                }}
+                className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl transition-all shrink-0 cursor-pointer flex items-center gap-1.5 font-bold text-xs shadow-sm opacity-100 hover:scale-105"
+                title="Delete or Leave Chat"
               >
-                <Trash2 size={18} />
+                <Trash2 size={16} />
+                <span className="hidden sm:inline">Delete</span>
               </button>
             </div>
-          ))
+            );
+          })
         )}
       </div>
 

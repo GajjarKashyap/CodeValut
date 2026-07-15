@@ -241,33 +241,25 @@ export default function SessionForm() {
           <button
             type="button"
             onClick={toggleEditorMode}
-            className="text-xs bg-dark-surface text-dark-muted hover:text-white border border-dark-border px-3 py-1.5 rounded-lg transition-colors cursor-pointer font-mono"
+            className="flex items-center h-[38px] text-xs bg-dark-surface text-dark-muted hover:text-white border border-dark-border px-3.5 rounded-lg transition-colors cursor-pointer font-mono"
           >
             {useSimpleEditor ? '⚡ Rich Editor' : '✏ Simple Editor'}
           </button>
 
-          {/* Share */}
+          {/* Share & QR */}
           {id && (
-            <div className="relative font-sans flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShareModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/15 hover:bg-primary/25 text-primary rounded-lg border border-primary/30 transition-colors cursor-pointer text-sm font-mono font-bold shadow-sm active:scale-95"
-                title="Open QR Code & Share Modal"
-              >
-                <QrCode size={16} />
-                <span>QR</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowShareMenu(!showShareMenu)}
-                className="flex items-center gap-2 px-3 py-1.5 text-dark-muted hover:text-white bg-dark-surface rounded-lg border border-dark-border transition-colors cursor-pointer text-sm"
-              >
-                <Share2 size={16} />
-                <span>Share</span>
-                {formData.share_mode !== 'private' && <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>}
-              </button>
-              {showShareMenu && (
+            <>
+              <div className="relative font-sans">
+                <button
+                  type="button"
+                  onClick={() => setShowShareMenu(!showShareMenu)}
+                  className="flex items-center h-[38px] gap-2 px-3.5 text-dark-muted hover:text-white bg-dark-surface rounded-lg border border-dark-border transition-colors cursor-pointer text-xs font-semibold"
+                >
+                  <Share2 size={15} />
+                  <span>Share</span>
+                  {formData.share_mode !== 'private' && <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>}
+                </button>
+                {showShareMenu && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowShareMenu(false)} />
                   <div className="absolute right-0 mt-2 w-80 bg-dark-surface border border-dark-border rounded-xl shadow-2xl p-4 z-50 space-y-4 animate-fadeIn">
@@ -307,15 +299,26 @@ export default function SessionForm() {
                 </>
               )}
             </div>
+
+            <button
+              type="button"
+              onClick={() => setShareModalOpen(true)}
+              className="flex items-center h-[38px] gap-1.5 px-3.5 bg-primary/15 hover:bg-primary/25 text-primary rounded-lg border border-primary/30 transition-colors cursor-pointer text-xs font-mono font-bold shadow-sm active:scale-95"
+              title="Open QR Code & Share Modal"
+            >
+              <QrCode size={15} />
+              <span>QR</span>
+            </button>
+          </>
           )}
 
-          <button onClick={exportAsTxt} className="p-2 text-dark-muted hover:text-white bg-dark-surface rounded-lg border border-dark-border transition-colors cursor-pointer" title="Download as TXT">
+          <button onClick={exportAsTxt} className="flex items-center justify-center h-[38px] w-[38px] text-dark-muted hover:text-white bg-dark-surface rounded-lg border border-dark-border transition-colors cursor-pointer" title="Download as TXT">
             <Download size={18} />
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center px-4 py-2 bg-primary hover:bg-primary/90 text-dark-bg font-bold rounded-lg cursor-pointer transition-all active:scale-95 font-sans text-sm disabled:opacity-60"
+            className="flex items-center h-[38px] px-4 bg-primary hover:bg-primary/90 text-dark-bg font-bold rounded-lg cursor-pointer transition-all active:scale-95 font-sans text-xs disabled:opacity-60"
           >
             <Save size={16} className="mr-2" />
             {saving ? 'Saving...' : 'Save'}

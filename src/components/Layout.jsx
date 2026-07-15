@@ -347,7 +347,7 @@ export default function Layout() {
     
     if (user) {
       const channel = supabase.channel('notifications_channel')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + user.id }, (payload) => {
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + user.id }, async (payload) => {
           setNotifications(prev => [payload.new, ...prev]);
           if ('Notification' in window && Notification.permission === 'granted') {
             new Notification('CodeVault', {

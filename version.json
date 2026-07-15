@@ -1,12 +1,10 @@
 {
-  "version": "1.3.5",
-  "min_version": "1.0.0",
-  "release_date": "2026-06-27",
-  "release_notes": "Mobile navigation drawer overhaul, haptic feedbacks, offline auto-syncing, keyboard avoidance, and custom error recovery.",
-  "title": "v1.3.5 Login Loop & Unblock Fix",
+  "version": "1.4.0",
+  "released_at": "2026-07-15T16:01:56.249Z",
   "changelog": [
-    "Fixed issue where unblocked users faced login loops due to lingering force_logout flag",
-    "Admin Unblock now clears both is_blocked and force_logout flags simultaneously",
-    "Login screen auto-clears lingering force_logout when an unblocked user signs in"
+    "Added One-Click Code Download as File (.java, .js/.json for MongoDB, .py, etc.)",
+    "Added QR Code Share Modal with WhatsApp & Telegram one-click share buttons",
+    "Added persistent A-/A+ font size zooming for code blocks (localStorage saved across views)",
+    "Upgraded CodeToolbar across Session views, Shared snippets, and Chat messages"
   ]
 }

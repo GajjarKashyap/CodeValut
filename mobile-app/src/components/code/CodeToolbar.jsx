@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { Copy, Check, Download, Share2 } from 'lucide-react';
+import { Copy, Check, Download, QrCode, Share2 } from 'lucide-react';
 import { downloadCodeFile } from '../../utils/downloadCodeFile';
-import { useCodeFontSize } from '../../hooks/useCodeFontSize';
 
 export default function CodeToolbar({ code, title, language, onShare, showShare = false }) {
   const [copied, setCopied] = useState(false);
-  const { fontSize, increaseFontSize, decreaseFontSize, canIncrease, canDecrease } = useCodeFontSize();
 
   const handleCopy = () => {
     if (code) {
@@ -20,51 +18,39 @@ export default function CodeToolbar({ code, title, language, onShare, showShare 
   };
 
   return (
-    <div className="flex items-center gap-1.5 bg-dark-bg/80 border border-dark-border px-2.5 py-1.5 rounded-lg">
-      <button
-        onClick={decreaseFontSize}
-        disabled={!canDecrease}
-        className="text-dark-muted hover:text-white disabled:opacity-30 disabled:hover:text-dark-muted p-1 rounded transition-colors cursor-pointer font-mono text-xs font-bold flex items-center"
-        title="Decrease font size (A-)"
-      >
-        A-
-      </button>
-      <span className="text-[11px] text-dark-muted font-mono px-1">{fontSize}px</span>
-      <button
-        onClick={increaseFontSize}
-        disabled={!canIncrease}
-        className="text-dark-muted hover:text-white disabled:opacity-30 disabled:hover:text-dark-muted p-1 rounded transition-colors cursor-pointer font-mono text-xs font-bold flex items-center"
-        title="Increase font size (A+)"
-      >
-        A+
-      </button>
-
-      <div className="w-[1px] h-3.5 bg-dark-border mx-1" />
-
+    <div className="flex items-center gap-2 bg-dark-bg/90 border border-dark-border px-3 py-1.5 rounded-xl shadow-sm">
       <button
         onClick={handleCopy}
-        className="text-dark-muted hover:text-primary p-1 rounded transition-colors cursor-pointer flex items-center gap-1 text-xs"
-        title="Copy code"
+        className="text-dark-muted hover:text-primary p-1 rounded transition-colors cursor-pointer flex items-center gap-1 text-xs font-mono"
+        title="Copy code to clipboard"
       >
         {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+        <span>{copied ? "Copied" : "Copy"}</span>
       </button>
+
+      <div className="w-[1px] h-3.5 bg-dark-border" />
 
       <button
         onClick={handleDownload}
-        className="text-dark-muted hover:text-primary p-1 rounded transition-colors cursor-pointer flex items-center gap-1 text-xs"
-        title={`Download ${title || 'code'} file`}
+        className="text-dark-muted hover:text-primary p-1 rounded transition-colors cursor-pointer flex items-center gap-1 text-xs font-mono"
+        title="Download code as source file"
       >
         <Download size={14} />
+        <span>Download File</span>
       </button>
 
-      {showShare && onShare && (
-        <button
-          onClick={onShare}
-          className="text-dark-muted hover:text-primary p-1 rounded transition-colors cursor-pointer flex items-center gap-1 text-xs"
-          title="Share code modal"
-        >
-          <Share2 size={14} />
-        </button>
+      {(showShare || onShare) && (
+        <>
+          <div className="w-[1px] h-3.5 bg-dark-border" />
+          <button
+            onClick={onShare}
+            className="flex items-center gap-1.5 bg-primary/15 hover:bg-primary/25 text-primary border border-primary/30 px-2.5 py-1 rounded-lg transition-colors cursor-pointer text-xs font-mono font-bold shadow-sm active:scale-95"
+            title="Share via QR Code & Socials"
+          >
+            <QrCode size={14} />
+            <span>Share QR</span>
+          </button>
+        </>
       )}
     </div>
   );

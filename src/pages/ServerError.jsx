@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+
 import { AlertTriangle, RefreshCw, Copy, Check, Home, Terminal, Cpu } from 'lucide-react';
 
 export default function ServerError({ error = null, onRestart = null }) {
-  const navigate = useNavigate();
-  const [copied, setCopied] = useState(false);
+const [copied, setCopied] = useState(false);
 
   const errorMessage = error?.toString() || 'Fatal server or application execution exception caused by an unexpected runtime error.';
   const stackTrace = error?.stack || 'No detailed stack trace available for this error event.';
@@ -84,14 +83,13 @@ export default function ServerError({ error = null, onRestart = null }) {
             <RefreshCw size={16} />
             <span>Restart &amp; Clear Cache</span>
           </button>
-          <Link
-            to="/"
+          <a href="/"
             onClick={() => localStorage.removeItem('codevault_last_active_route')}
             className="w-full sm:w-auto flex items-center justify-center gap-2 bg-dark-surface border border-dark-border hover:border-white/20 text-white font-semibold px-6 py-3 rounded-xl transition-all text-sm cursor-pointer"
           >
             <Home size={16} />
             <span>Go to Dashboard</span>
-          </Link>
+          </a>
         </div>
 
         {/* Footer */}

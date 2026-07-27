@@ -1,0 +1,29 @@
+{
+  "name": "codevault-cli",
+  "version": "1.4.0",
+  "description": "Interactive command line interface for CodeVault with Daily Passkey access restrictions.",
+  "type": "module",
+  "bin": {
+    "codevault": "index.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "build:exe": "node \"C:/Users/kasha/.gemini/antigravity/brain/9deb1886-608a-4005-8eba-30d34ae1badf/scratch/build_esbuild_pkg.js\""
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.3.1",
+    "@supabase/supabase-js": "^2.108.2",
+    "boxen": "^8.0.1",
+    "chalk": "^5.4.1",
+    "ora": "^8.2.0",
+    "ws": "^8.21.1"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.3",
+    "@yao-pkg/pkg": "^6.21.0",
+    "binpod": "^0.1.2",
+    "esbuild": "^0.25.0",
+    "pkg": "^5.8.1",
+    "postject": "^1.0.0-alpha.6"
+  }
+}

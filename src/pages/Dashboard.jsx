@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { supabase } from '../lib/supabase';
-import { Coffee, Database, Star, FileText, X, TrendingUp, Users, ShieldCheck, Activity, RefreshCw, Bell, Trash2, Megaphone, AlertTriangle, CheckCircle, LogOut } from 'lucide-react';
+import { Coffee, Database, Star, FileText, X, TrendingUp, Users, ShieldCheck, Activity, RefreshCw, Bell, Trash2, Megaphone, AlertTriangle, CheckCircle, LogOut, Key, Copy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
+import { getTodayPasskey } from '../utils/passkeyUtils';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -23,11 +24,17 @@ export default function Dashboard() {
 
   const isAdmin = user?.email?.trim()?.toLowerCase() === 'admin@admin.com';
 
-  
+  const [todayPasskey, setTodayPasskey] = useState('');
   const [announcement, setAnnouncement] = useState('');
   const [sendingAnnouncement, setSendingAnnouncement] = useState(false);
   const [profiles, setProfiles] = useState({});
   const [avatarToDelete, setAvatarToDelete] = useState(null);
+
+  useEffect(() => {
+    if (isAdmin) {
+      getTodayPasskey(supabase).then(setTodayPasskey);
+    }
+  }, [isAdmin]);
 
   useEffect(() => {
     if (isAdmin && adminUsersActivity.length > 0) {
@@ -448,6 +455,45 @@ export default function Dashboard() {
         <StatCard title="Favorites" count={stats.favorites} icon={<Star size={22} className="text-yellow-400" />} color="bg-yellow-500/10" />
       </div>
 
+
+      {/* Admin Daily Passkey Card */}
+      {isAdmin && todayPasskey && (
+        <div className="bg-gradient-to-r from-dark-surface via-dark-surface to-primary/10 rounded-xl border border-primary/30 overflow-hidden mt-6 p-5 relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg shadow-primary/5">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary shrink-0">
+              <Key size={24} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-white font-sans">
+                  Today's Daily Passkey
+                </h3>
+                <span className="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded font-mono font-bold uppercase">
+                  Active
+                </span>
+              </div>
+              <p className="text-dark-muted text-xs mt-0.5 font-sans">
+                Share this key with students to unlock full read access across both Web and CLI tools today.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 w-full sm:w-auto bg-dark-bg/80 border border-primary/25 rounded-lg px-4 py-2.5">
+            <span className="font-mono text-lg font-black text-primary tracking-wider select-all">
+              {todayPasskey}
+            </span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(todayPasskey);
+                alert('Daily passkey copied to clipboard!');
+              }}
+              title="Copy Passkey"
+              className="p-1.5 hover:bg-primary/20 text-dark-muted hover:text-primary rounded-md transition-colors ml-2"
+            >
+              <Copy size={16} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Admin Announcement Tool */}
       {isAdmin && (

@@ -6,23 +6,20 @@ import { formatDistanceToNow, format } from 'date-fns';
 export default function AdminDeviceManager({ targetUserId, adminUser }) {
   const [devices, setDevices] = useState([]);
   const [sessions, setSessions] = useState([]);
-  const [settings, setSettings] = useState(null);
-  const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchData = async () => {
     setError(null);
     try {
-      const [devRes, sessRes, setRes] = await Promise.all([
+      const [devRes, sessRes] = await Promise.all([
         supabase.from('user_devices').select('*').eq('user_id', targetUserId).order('last_seen_at', { ascending: false }),
-        supabase.from('auth_device_sessions').select('*').eq('user_id', targetUserId).order('created_at', { ascending: false }).limit(20),
-        supabase.from('user_login_settings').select('*').eq('user_id', targetUserId).single()
+        supabase.from('auth_device_sessions').select('*').eq('user_id', targetUserId).order('created_at', { ascending: false }).limit(20)
       ]);
       if (devRes.error) throw devRes.error;
       setDevices(devRes.data || []);
       if (!sessRes.error) setSessions(sessRes.data || []);
-      if (!setRes.error && setRes.data) setSettings(setRes.data);
-    } catch (err) {
+          } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
@@ -49,20 +46,7 @@ export default function AdminDeviceManager({ targetUserId, adminUser }) {
   const getUA = (d) => d.metadata?.user_agent || d.user_agent || '';
   const getDeviceSessions = (deviceId) => sessions.filter(s => s.device_id === deviceId);
 
-    const toggleSingleDevice = async () => {
-    if (!settings) return;
-    const newValue = !settings.single_device_mode;
-    try {
-      const { error } = await supabase
-        .from('user_login_settings')
-        .update({ single_device_mode: newValue })
-        .eq('user_id', targetUserId);
-      if (error) throw error;
-      setSettings(prev => ({ ...prev, single_device_mode: newValue }));
-    } catch (err) {
-      alert('Failed to update setting: ' + err.message);
-    }
-  };
+    
 
   const handleRevoke = async (deviceId) => {
     if (!window.confirm('Revoke this device? The user will be logged out immediately.')) return;
@@ -103,17 +87,7 @@ export default function AdminDeviceManager({ targetUserId, adminUser }) {
           {devices.length} Device{devices.length !== 1 ? 's' : ''} · {sessions.filter(s=>s.status==='active').length} Active Session{sessions.filter(s=>s.status==='active').length !== 1 ? 's' : ''}
         </h4>
         <div className="flex items-center gap-3">
-          {settings && (
-            <label className="flex items-center gap-2 cursor-pointer text-[10px] text-dark-muted hover:text-white transition-colors">
-              <input 
-                type="checkbox" 
-                checked={!!settings.single_device_mode} 
-                onChange={toggleSingleDevice}
-                className="accent-primary w-3 h-3 cursor-pointer"
-              />
-              Single Device Mode
-            </label>
-          )}
+          
           <button onClick={fetchData} className="text-[10px] text-dark-muted hover:text-white transition-colors">↻ Refresh</button>
         </div>
       </div>

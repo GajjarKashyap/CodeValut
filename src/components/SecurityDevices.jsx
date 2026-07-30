@@ -251,15 +251,7 @@ export default function SecurityDevices() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {!device.is_primary && device.status === 'approved' && (
-                    <button
-                      onClick={() => handleSetPrimary(device.id)}
-                      className="px-3 py-2 text-dark-muted hover:text-yellow-400 hover:bg-yellow-500/10 rounded-lg transition-colors border border-transparent hover:border-yellow-500/20 text-sm font-bold flex items-center gap-1"
-                      title="Set as Primary"
-                    >
-                      <Star size={14} /> <span className="hidden sm:inline">Set Primary</span>
-                    </button>
-                  )}
+                  
                   {device.status === 'revoked' && !isCurrentDevice && (
                     <button
                       onClick={() => handleRestore(device.id)}

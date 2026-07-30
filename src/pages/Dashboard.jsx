@@ -8,7 +8,6 @@ import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
 import { getTodayPasskey } from '../utils/passkeyUtils';
 import AdminDeviceManager from '../components/AdminDeviceManager';
-import AdminPendingRequests from '../components/AdminPendingRequests';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -653,9 +652,7 @@ export default function Dashboard() {
             </button>
           </div>
           
-          {/* Pending Device Login Requests — realtime */}
-          <AdminPendingRequests />
-
+          
         <div className="p-3 space-y-2 mt-4">
             {adminUsersActivity.map((activity) => {
               const lastSeen = new Date(activity.last_seen_at);
@@ -689,17 +686,7 @@ export default function Dashboard() {
                         <Trash2 size={14} />
                       </button>
                     )}
-                    <button 
-                      onClick={() => handleToggleSingleDevice(activity.user_id, adminUserSettings[activity.user_id]?.single_device_mode)}
-                      className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center gap-1 mr-1 ${
-                        adminUserSettings[activity.user_id]?.single_device_mode 
-                          ? 'bg-purple-500/10 text-purple-400 border-purple-500/20 hover:bg-purple-500/20' 
-                          : 'bg-dark-bg text-dark-muted border-dark-border hover:text-white'
-                      }`}
-                      title="Single Device Mode (Kicks old devices on new login)"
-                    >
-                      <Smartphone size={12} /> 1-Device
-                    </button>
+                    
                     <button 
         onClick={() => setExpandedUserDevices(prev => prev === activity.user_id ? null : activity.user_id)}
         className="text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 px-2 py-1.5 rounded-lg text-xs font-bold transition-all mr-1 cursor-pointer"

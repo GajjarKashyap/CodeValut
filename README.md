@@ -142,7 +142,7 @@ CodeVault (*repository name: `CodeValut`*) was conceived and built from scratch 
 ### Reliability and Platform Support
 - **Application Crash Shield (`ErrorBoundary` & `ServerError`):** Top-level React error boundary catching unexpected rendering exceptions. Features a **Copy Error Log** button (`handleCopyError`) formatted with exact timestamps and stack traces, plus a one-click **Restart & Clear Cache** recovery button.
 - **Dedicated Error Suite:** Custom developer-themed views for `404 Not Found` (featuring an interactive in-page vault search box), `403 Forbidden` (security lock diagnostics), `500 Server Error`, and `NetworkError` (`/offline` view with live Supabase endpoint pinging).
-- **Automated Boot-Time Version Checker:** The `<VersionChecker>` component checks `public/version.json` against hardcoded `CURRENT_VERSION = '1.3.5'`, notifying students when new releases drop or blocking with a mandatory alert when `min_version` security patches are required.
+- **Automated Boot-Time Version Checker:** The `<VersionChecker>` component checks `public/version.json` against hardcoded `CURRENT_VERSION = '2.0.1'`, notifying students when new releases drop or blocking with a mandatory alert when `min_version` security patches are required.
 - **Static Web & Native Android Ecosystem:** Built with `HashRouter` (`#/...`) for 100% compatibility with GitHub Pages static hosting, and wrapped inside a native Android shell (`mobile-app/`) powered by **Capacitor 8** with haptic vibration, keyboard handling, and system notifications.
 
 ---
@@ -201,7 +201,7 @@ React 19 & Vite 8 Frontend (Client Bundle / Android WebView)
    │      ├── Protected Routes (<Layout>, Dashboard, SessionForm, SessionList, ChatRoom, Settings)
    │      └── Public & Error Routes (Login, /share/:shareId, /download, /404, /403, /500, /offline)
    │
-   ├── <VersionChecker> (Compares public/version.json against CURRENT_VERSION = '1.3.5')
+   ├── <VersionChecker> (Compares public/version.json against CURRENT_VERSION = '2.0.1')
    │
    └── Supabase Client (@supabase/supabase-js)
           ├── Authentication (auth.users & JWT Bearer tokens)
@@ -578,7 +578,7 @@ CodeVault uses browser `localStorage` to persist student preferences, UI state, 
 CodeVault is configured for zero-friction static deployment on **GitHub Pages**:
 - **Static Bundling & Base Path:** The Vite bundler (`vite.config.js`) compiles static assets with `base: '/CodeValut/'` corresponding to the repository subdirectory. Combined with `HashRouter` (`#/...`) in `App.jsx`, this prevents `404 Not Found` routing errors when users bookmark deep links on GitHub Pages.
 - **Build-Time Environment Injection:** Vite embeds variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) directly into the JavaScript client bundle during `npm run build`. Ensure these environment variables are populated before triggering production builds.
-- **Application Update Check Mechanism:** On startup, `<VersionChecker>` fetches `public/version.json` over HTTP (`?t=timestamp` to bypass CDN caching) and compares semantic versions against `CURRENT_VERSION = '1.3.5'` defined in `App.jsx`, alerting students right inside the interface when new features or security patches drop.
+- **Application Update Check Mechanism:** On startup, `<VersionChecker>` fetches `public/version.json` over HTTP (`?t=timestamp` to bypass CDN caching) and compares semantic versions against `CURRENT_VERSION = '2.0.1'` defined in `App.jsx`, alerting students right inside the interface when new features or security patches drop.
 
 ---
 

@@ -8,6 +8,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
 import { getTodayPasskey } from '../utils/passkeyUtils';
 import AdminDeviceManager from '../components/AdminDeviceManager';
+import AdminPendingRequests from '../components/AdminPendingRequests';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -632,7 +633,10 @@ export default function Dashboard() {
             </button>
           </div>
           
-          <div className="p-3 space-y-2">
+          {/* Pending Device Login Requests — realtime */}
+          <AdminPendingRequests />
+
+        <div className="p-3 space-y-2 mt-4">
             {adminUsersActivity.map((activity) => {
               const lastSeen = new Date(activity.last_seen_at);
               const isOnline = (new Date() - lastSeen) < 5 * 60 * 1000;

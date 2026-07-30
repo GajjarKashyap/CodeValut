@@ -1,48 +1,58 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Monitor, Smartphone, ShieldAlert, CheckCircle, Trash2, XCircle } from 'lucide-react';
+import { Monitor, Smartphone, ShieldAlert, CheckCircle, Trash2, XCircle, Settings2, Save } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function SecurityDevices() {
   const { user, deviceSessionInfo } = useAuth();
   const [devices, setDevices] = useState([]);
+  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const fetchDevices = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('user_devices')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('last_seen_at', { ascending: false });
+      const [devicesRes, settingsRes] = await Promise.all([
+        supabase
+          .from('user_devices')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('last_seen_at', { ascending: false }),
+        supabase
+          .from('user_login_settings')
+          .select('*')
+          .eq('user_id', user.id)
+          .single()
+      ]);
 
-      if (error) throw error;
-      setDevices(data || []);
+      if (devicesRes.error) throw devicesRes.error;
+      setDevices(devicesRes.data || []);
+      
+      if (settingsRes.error && settingsRes.error.code !== 'PGRST116') throw settingsRes.error;
+      setSettings(settingsRes.data || { max_active_devices: 5 });
     } catch (err) {
-      console.error("Failed to fetch devices:", err);
+      console.error("Failed to fetch data:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user) fetchDevices();
+    if (user) fetchData();
   }, [user]);
 
   const handleRevoke = async (deviceId) => {
     if (!window.confirm("Are you sure you want to log out and revoke this device?")) return;
     
     try {
-      // Normal users will call a secure RPC to revoke their own device
       const { error } = await supabase.rpc('revoke_device_internal', {
-        p_admin_user_id: user.id, // they are admin of their own account
+        p_admin_user_id: user.id,
         p_target_device_id: deviceId
       });
       
       if (error) {
-         // Fallback just in case they have RLS update access
          const { error: updateError } = await supabase
           .from('user_devices')
           .update({ status: 'revoked', revoked_at: new Date().toISOString() })
@@ -52,9 +62,25 @@ export default function SecurityDevices() {
          if (updateError) throw updateError;
       }
       
-      fetchDevices();
+      fetchData();
     } catch (err) {
-      alert("Failed to revoke device. Ensure you have run the Phase 4 SQL schema in Supabase. Error: " + err.message);
+      alert("Failed to revoke device. Error: " + err.message);
+    }
+  };
+
+  const handleUpdateLimit = async (newLimit) => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('user_login_settings')
+        .upsert({ user_id: user.id, max_active_devices: newLimit });
+        
+      if (error) throw error;
+      setSettings({ ...settings, max_active_devices: newLimit });
+    } catch (err) {
+      alert("Failed to update limit: " + err.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -62,11 +88,34 @@ export default function SecurityDevices() {
 
   return (
     <div className="bg-dark-surface border border-dark-border rounded-2xl p-6 shadow-xl font-sans mt-6">
-      <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-        <Monitor className="text-primary" />
-        Your Connected Devices
-      </h2>
-      <p className="text-dark-muted text-sm mb-6">Manage the computers and browsers that have access to your account.</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div>
+          <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+            <Monitor className="text-primary" />
+            Your Connected Devices
+          </h2>
+          <p className="text-dark-muted text-sm">Manage the computers and browsers that have access to your account.</p>
+        </div>
+        
+        {settings && (
+          <div className="bg-dark-bg border border-dark-border rounded-xl p-3 flex items-center gap-4">
+            <div className="text-sm">
+              <span className="text-dark-muted">Max Devices: </span>
+              <span className="text-white font-bold">{settings.max_active_devices}</span>
+            </div>
+            <select 
+              value={settings.max_active_devices}
+              onChange={(e) => handleUpdateLimit(parseInt(e.target.value))}
+              disabled={saving}
+              className="bg-dark-surface text-white border border-dark-border rounded-lg px-2 py-1 text-sm outline-none focus:border-primary"
+            >
+              {[1, 2, 3, 5, 10].map(num => (
+                <option key={num} value={num}>{num}</option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
       
       {devices.length === 0 ? (
         <div className="p-8 text-center border border-dashed border-dark-border/50 rounded-xl text-dark-muted">

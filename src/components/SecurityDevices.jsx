@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Monitor, Smartphone, ShieldAlert, CheckCircle, Trash2, XCircle, RotateCcw } from 'lucide-react';
+import { Monitor, Smartphone, ShieldAlert, CheckCircle, Trash2, XCircle, RotateCcw, Star } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function SecurityDevices() {
@@ -104,6 +104,30 @@ export default function SecurityDevices() {
     }
   };
 
+  const handleSetPrimary = async (deviceId) => {
+    if (!window.confirm('Set this device as your Primary device?')) return;
+    setLoading(true);
+    try {
+      await supabase
+        .from('user_devices')
+        .update({ is_primary: false })
+        .eq('user_id', user.id)
+        .eq('is_primary', true);
+        
+      const { error } = await supabase
+        .from('user_devices')
+        .update({ is_primary: true })
+        .eq('id', deviceId)
+        .eq('user_id', user.id);
+        
+      if (error) throw error;
+      fetchData();
+    } catch (err) {
+      alert('Failed to set primary: ' + err.message);
+      setLoading(false);
+    }
+  };
+
   // Helper: device name/browser from metadata or direct column
   const getDeviceName = (device) =>
     device.device_name || device.metadata?.device_name || 'Unknown Device';
@@ -200,8 +224,10 @@ export default function SecurityDevices() {
                       {isCurrentDevice && (
                         <span className="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-wider border border-primary/30">This Device</span>
                       )}
-                      {device.is_primary && !isCurrentDevice && (
-                        <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded uppercase font-bold tracking-wider border border-primary/20">Primary</span>
+                      {device.is_primary && (
+                        <span className="bg-yellow-500/20 text-yellow-500 text-[10px] px-2 py-0.5 rounded uppercase font-bold tracking-wider border border-yellow-500/30 flex items-center gap-1">
+                          <Star size={10} className="fill-yellow-500" /> Primary
+                        </span>
                       )}
                     </p>
                     <div className="text-xs text-dark-muted mt-1 flex items-center gap-2 flex-wrap">
@@ -225,6 +251,15 @@ export default function SecurityDevices() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {!device.is_primary && device.status === 'approved' && (
+                    <button
+                      onClick={() => handleSetPrimary(device.id)}
+                      className="px-3 py-2 text-dark-muted hover:text-yellow-400 hover:bg-yellow-500/10 rounded-lg transition-colors border border-transparent hover:border-yellow-500/20 text-sm font-bold flex items-center gap-1"
+                      title="Set as Primary"
+                    >
+                      <Star size={14} /> <span className="hidden sm:inline">Set Primary</span>
+                    </button>
+                  )}
                   {device.status === 'revoked' && !isCurrentDevice && (
                     <button
                       onClick={() => handleRestore(device.id)}

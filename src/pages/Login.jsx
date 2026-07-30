@@ -19,10 +19,16 @@ export default function Login() {
     document.documentElement.setAttribute('data-theme', savedTheme);
   }, []);
 
+  const [limitModalOpen, setLimitModalOpen] = useState(false);
+
   useEffect(() => {
     if (user && (deviceStatus === 'blocked' || deviceStatus === 'revoked')) {
       supabase.auth.signOut().then(() => {
         setBlockedModalOpen(true);
+      });
+    } else if (user && deviceStatus === 'limit_reached') {
+      supabase.auth.signOut().then(() => {
+        setLimitModalOpen(true);
       });
     }
   }, [user, deviceStatus]);
@@ -31,7 +37,7 @@ export default function Login() {
     setShowRequestModal(true);
   };
 
-  if (user && deviceStatus !== 'blocked' && deviceStatus !== 'revoked') {
+  if (user && deviceStatus !== 'blocked' && deviceStatus !== 'revoked' && deviceStatus !== 'limit_reached') {
     return <Navigate to="/" />;
   }
 
@@ -83,6 +89,25 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-dark-bg text-dark-text flex items-center justify-center p-4 relative overflow-hidden bg-grid-pattern">
+      {limitModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
+          <div className="bg-dark-surface border border-yellow-500/30 p-6 rounded-2xl max-w-sm w-full text-center space-y-4 shadow-2xl">
+            <div className="w-14 h-14 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto border border-yellow-500/20 text-yellow-400">
+              <AlertTriangle size={28} />
+            </div>
+            <h3 className="text-lg font-bold text-white font-serif">Device Limit Reached</h3>
+            <p className="text-dark-muted text-sm font-sans leading-relaxed">
+              You've reached the maximum number of active devices. Log in to your primary device, go to <strong className="text-white">Settings → Security</strong>, and increase your device limit.
+            </p>
+            <button
+              onClick={() => setLimitModalOpen(false)}
+              className="w-full bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 border border-yellow-500/30 py-2.5 rounded-xl font-medium text-sm transition-colors cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
       {blockedModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
           <div className="bg-dark-surface border border-red-500/30 p-6 rounded-2xl max-w-sm w-full text-center space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-200">

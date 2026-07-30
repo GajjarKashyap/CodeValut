@@ -70,7 +70,7 @@ const ProtectedRoute = ({ children }) => {
     </div>
   );
   
-  if (!user || deviceStatus === 'blocked' || deviceStatus === 'revoked') {
+  if (!user || deviceStatus === 'blocked' || deviceStatus === 'revoked' || deviceStatus === 'limit_reached') {
     return <Navigate to="/login" />;
   }
   

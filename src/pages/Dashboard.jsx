@@ -279,15 +279,15 @@ export default function Dashboard() {
       if (isAdmin) {
         fetchReportedSessions();
       }
-      const hasSeenUpdate = localStorage.getItem('codevault_update_v1');
-      if (!hasSeenUpdate) {
+      const hasSeenSecurityUpdate = localStorage.getItem('codevault_security_update_v2');
+      if (!hasSeenSecurityUpdate) {
         setShowUpdateModal(true);
       }
     }
   }, [user]);
 
   const closeUpdateModal = () => {
-    localStorage.setItem('codevault_update_v1', 'true');
+    localStorage.setItem('codevault_security_update_v2', 'true');
     setShowUpdateModal(false);
   };
 
@@ -385,28 +385,43 @@ export default function Dashboard() {
                 <ShieldCheck size={20} />
               </div>
               <div>
-                <h3 className="text-dark-text font-bold font-serif text-lg">CodeVault Updates!</h3>
-                <p className="text-primary text-xs font-mono">Fresh Start</p>
+                <h3 className="text-dark-text font-bold font-serif text-lg">New Security Feature Added</h3>
+                <p className="text-primary text-xs font-mono">Device Login Protection</p>
               </div>
             </div>
             
             <div className="p-6 space-y-5">
               <div className="flex gap-4">
-                <div className="text-green-400 mt-1 shrink-0"><Database size={20} /></div>
+                <div className="text-green-400 mt-1 shrink-0"><ShieldCheck size={20} /></div>
                 <div>
-                  <h4 className="text-white font-bold text-sm mb-1 font-sans">Fresh Start & 100% Secured</h4>
-                  <p className="text-dark-muted text-sm font-sans leading-relaxed">
-                    During a recent update, some old data was accidentally deleted. But the good news is we are back with a completely fresh start, and your data is now <strong className="text-white">100% secured</strong>!
-                  </p>
+                  <h4 className="text-white font-bold text-sm mb-1 font-sans">What has changed?</h4>
+                  <ul className="text-dark-muted text-sm font-sans leading-relaxed list-disc list-inside space-y-1">
+                    <li>The first computer logged into your account becomes the primary device.</li>
+                    <li>When someone tries to log in from a new computer, access may require approval.</li>
+                    <li>You can review and manage devices connected to your account.</li>
+                    <li>Administrators can view active devices and revoke unauthorised access.</li>
+                    <li>Multiple-device access may be limited depending on your account settings.</li>
+                  </ul>
                 </div>
               </div>
 
               <div className="flex gap-4">
-                <div className="text-primary mt-1 shrink-0"><Users size={20} /></div>
+                <div className="text-red-400 mt-1 shrink-0"><AlertTriangle size={20} /></div>
                 <div>
-                  <h4 className="text-white font-bold text-sm mb-1 font-sans">New Feature: Usernames!</h4>
-                  <p className="text-dark-muted text-sm font-sans leading-relaxed">
-                    You can now set your own Username from the Chat section! Once you set it, other users will see your chosen name instead of your email address when chatting.
+                  <h4 className="text-white font-bold text-sm mb-1 font-sans">Important</h4>
+                  <p className="text-dark-muted text-sm font-sans leading-relaxed mb-2">
+                    Do not share your CodeVault email, password, or approval code with anyone.
+                  </p>
+                  <p className="text-dark-muted text-sm font-sans leading-relaxed mb-1">
+                    When you receive a new device request, approve it only when:
+                  </p>
+                  <ul className="text-dark-muted text-sm font-sans leading-relaxed list-disc list-inside space-y-1">
+                    <li>You recognise the device.</li>
+                    <li>You started the login.</li>
+                    <li>The approval code matches the code shown on the new device.</li>
+                  </ul>
+                  <p className="text-red-400/90 text-sm font-sans leading-relaxed mt-2 font-medium">
+                    Unknown login requests should be rejected immediately.
                   </p>
                 </div>
               </div>
@@ -417,7 +432,7 @@ export default function Dashboard() {
                 onClick={closeUpdateModal}
                 className="bg-primary hover:bg-primary/90 text-dark-bg font-bold px-6 py-2 rounded-lg transition-all active:scale-95 text-sm"
               >
-                Got it, thanks!
+                Got it
               </button>
             </div>
           </div>

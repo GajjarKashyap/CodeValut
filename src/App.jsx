@@ -18,6 +18,9 @@ import Forbidden from './pages/Forbidden';
 import ServerError from './pages/ServerError';
 import NetworkError from './pages/NetworkError';
 import DownloadApp from './pages/DownloadApp';
+import PendingDeviceApproval from './pages/PendingDeviceApproval';
+import DeviceLoginRequestDialog from './components/DeviceLoginRequestDialog';
+
 import { RefreshCw, Download, Settings as SettingsIcon, X } from 'lucide-react';
 
 // ----------------------------------------------------
@@ -70,7 +73,7 @@ const ProtectedRoute = ({ children }) => {
 // ----------------------------------------------------
 // 3. Version Checker Overlay Component
 // ----------------------------------------------------
-const CURRENT_VERSION = '1.3.5';
+const CURRENT_VERSION = '2.0.1';
 
 function compareVersions(v1, v2) {
   const p1 = v1.replace(/^v/, '').split('.').map(Number);
@@ -240,6 +243,7 @@ function App() {
           </Routes>
           </Router>
         <VersionChecker />
+        <DeviceLoginRequestDialog />
       </AuthProvider>
     </ErrorBoundary>
   );

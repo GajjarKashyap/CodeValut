@@ -1,21 +1,23 @@
 -- ============================================================
--- CODEVAULT — COMPLETE LOGIN SYSTEM REWRITE (v2)
--- This fixes the root cause: duplicate sessions on every refresh.
+-- CODEVAULT — COMPLETE LOGIN SYSTEM REWRITE (v2) — FIXED
 -- Paste into: Supabase Dashboard → SQL Editor → Run
 -- ============================================================
 
--- Step 1: Clean up duplicate/orphaned ghost sessions first
--- (Sessions that were created by the old buggy logic)
-DELETE FROM public.auth_device_sessions a
-USING (
-  SELECT id, ROW_NUMBER() OVER (
-    PARTITION BY user_id, device_id
-    ORDER BY created_at DESC
-  ) AS rn
-  FROM public.auth_device_sessions
-  WHERE status IN ('active', 'pending')
-) b
-WHERE a.id = b.id AND b.rn > 1;
+-- Step 1: Mark duplicate/ghost sessions as 'revoked' instead of deleting them
+-- (Cannot DELETE because security_audit_logs has a foreign key reference)
+UPDATE public.auth_device_sessions
+SET status = 'revoked', revocation_reason = 'Duplicate session cleaned up by v2 migration'
+WHERE id IN (
+  SELECT id FROM (
+    SELECT id, ROW_NUMBER() OVER (
+      PARTITION BY user_id, device_id
+      ORDER BY created_at DESC
+    ) AS rn
+    FROM public.auth_device_sessions
+    WHERE status IN ('active', 'pending')
+  ) ranked
+  WHERE rn > 1
+);
 
 -- Step 2: Replace the core registration function with an idempotent version
 CREATE OR REPLACE FUNCTION public.register_device_login_internal(
@@ -29,15 +31,15 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
-  v_settings        public.user_login_settings;
-  v_activity        public.user_activity;
-  v_device          public.user_devices;
+  v_settings         public.user_login_settings;
+  v_activity         public.user_activity;
+  v_device           public.user_devices;
   v_existing_session public.auth_device_sessions;
   v_existing_request public.device_login_requests;
-  v_active_count    int;
-  v_new_session_id  uuid;
-  v_status          text;
-  v_email           text;
+  v_active_count     int;
+  v_new_session_id   uuid;
+  v_status           text;
+  v_email            text;
 BEGIN
   -- 0. Get user email
   SELECT email INTO v_email FROM auth.users WHERE id = p_user_id;
@@ -50,7 +52,7 @@ BEGIN
   SELECT * INTO v_settings
   FROM public.user_login_settings WHERE user_id = p_user_id FOR UPDATE;
 
-  -- 2. Ensure activity row exists
+  -- 2. Ensure activity row exists, update last_seen on conflict
   INSERT INTO public.user_activity (user_id, email, last_login_at, last_seen_at)
   VALUES (p_user_id, v_email, now(), now())
   ON CONFLICT (user_id) DO UPDATE SET last_seen_at = now();
@@ -69,12 +71,10 @@ BEGIN
   WHERE user_id = p_user_id AND device_token_hash = p_device_token_hash;
 
   IF v_device IS NULL THEN
-    -- Brand new device never seen before
     INSERT INTO public.user_devices (user_id, device_token_hash, metadata, status)
     VALUES (p_user_id, p_device_token_hash, p_metadata, 'pending')
     RETURNING * INTO v_device;
   ELSE
-    -- Known device: update last seen timestamp and metadata
     UPDATE public.user_devices
     SET last_seen_at = now(), metadata = p_metadata
     WHERE id = v_device.id;
@@ -85,8 +85,7 @@ BEGIN
   END IF;
 
   -- ============================================================
-  -- KEY FIX: Check if an active/pending session ALREADY EXISTS
-  -- for this device. If so, REUSE it — don't create a new one.
+  -- KEY FIX: Reuse existing active/pending session on refresh
   -- ============================================================
   SELECT * INTO v_existing_session
   FROM public.auth_device_sessions
@@ -96,7 +95,7 @@ BEGIN
   ORDER BY created_at DESC
   LIMIT 1;
 
-  -- If already active → just return active (this is the "refresh" case)
+  -- Already active → return immediately, no new rows
   IF v_existing_session IS NOT NULL AND v_existing_session.status = 'active' THEN
     RETURN jsonb_build_object(
       'status', 'active',
@@ -105,7 +104,7 @@ BEGIN
     );
   END IF;
 
-  -- If already pending → return same request so the code doesn't change on refresh
+  -- Already pending → return same request and same code (stable across refreshes)
   IF v_existing_session IS NOT NULL AND v_existing_session.status = 'pending' THEN
     SELECT * INTO v_existing_request
     FROM public.device_login_requests
@@ -123,21 +122,25 @@ BEGIN
         'approval_code_hash', v_existing_request.approval_code_hash
       );
     END IF;
-    -- If request expired, fall through to create a new session below
+    -- Request expired: fall through to create a fresh session below
+    -- Mark old expired session as revoked first
+    UPDATE public.auth_device_sessions
+    SET status = 'revoked', revocation_reason = 'Approval request expired'
+    WHERE id = v_existing_session.id;
   END IF;
 
   -- ============================================================
-  -- No existing valid session — determine policy and create one
+  -- No valid session exists — determine policy and create one
   -- ============================================================
 
-  -- Admin always gets instant access
+  -- Admin always gets instant access on any device
   IF v_email = 'admin@admin.com' THEN
     UPDATE public.user_devices
     SET status = 'approved', is_primary = true, approved_at = now()
     WHERE id = v_device.id;
     v_status := 'active';
 
-  -- Device already approved: check session count
+  -- Known approved device: check active session count
   ELSIF v_device.status = 'approved' THEN
     SELECT count(*) INTO v_active_count
     FROM public.auth_device_sessions
@@ -146,7 +149,7 @@ BEGIN
     IF v_device.is_primary OR v_active_count < v_settings.max_active_devices THEN
       v_status := 'active';
     ELSE
-      v_status := 'pending';
+      RETURN jsonb_build_object('status', 'blocked', 'reason', 'Maximum active device limit reached. Please increase your limit in Settings.');
     END IF;
 
   -- First device ever → auto-approve as primary
@@ -171,30 +174,30 @@ BEGIN
       WHERE id = v_device.id;
       v_status := 'active';
     ELSE
-      RETURN jsonb_build_object('status', 'blocked', 'reason', 'Maximum active device limit reached');
+      RETURN jsonb_build_object('status', 'blocked', 'reason', 'Maximum active device limit reached.');
     END IF;
 
-  -- Default: requires approval
+  -- Default: requires manual approval from primary device
   ELSE
     SELECT count(*) INTO v_active_count
     FROM public.auth_device_sessions
     WHERE user_id = p_user_id AND status = 'active';
 
     IF v_active_count >= v_settings.max_active_devices THEN
-      RETURN jsonb_build_object('status', 'blocked', 'reason', 'Maximum active device limit reached. Please increase your device limit in Settings.');
+      RETURN jsonb_build_object('status', 'blocked', 'reason', 'Maximum active device limit reached. Please increase your limit in Settings.');
     END IF;
     v_status := 'pending';
   END IF;
 
-  -- Create the new session row
+  -- Create new session row
   INSERT INTO public.auth_device_sessions (user_id, device_id, supabase_session_id, status)
   VALUES (p_user_id, v_device.id, p_supabase_session_id, v_status)
   RETURNING id INTO v_new_session_id;
 
-  -- If pending, create the approval request
+  -- If pending: create the approval request with a 6-digit code
   IF v_status = 'pending' THEN
     DECLARE
-      v_code text := COALESCE(p_approval_code_hash, LPAD(FLOOR(RANDOM() * 1000000)::text, 6, '0'));
+      v_code   text := COALESCE(p_approval_code_hash, LPAD(FLOOR(RANDOM() * 1000000)::text, 6, '0'));
       v_req_id uuid;
     BEGIN
       INSERT INTO public.device_login_requests (

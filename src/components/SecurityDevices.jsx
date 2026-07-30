@@ -98,21 +98,55 @@ export default function SecurityDevices() {
         </div>
         
         {settings && (
-          <div className="bg-dark-bg border border-dark-border rounded-xl p-3 flex items-center gap-4">
-            <div className="text-sm">
-              <span className="text-dark-muted">Max Devices: </span>
-              <span className="text-white font-bold">{settings.max_active_devices}</span>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="bg-dark-bg border border-dark-border rounded-xl p-3 flex items-center gap-4">
+              <div className="text-sm">
+                <span className="text-dark-muted">Max Devices: </span>
+                <span className="text-white font-bold">{settings.max_active_devices}</span>
+              </div>
+              <select 
+                value={settings.max_active_devices}
+                onChange={async (e) => {
+                  setSaving(true);
+                  try {
+                    const { error } = await supabase.from('user_login_settings').upsert({ user_id: user.id, max_active_devices: parseInt(e.target.value) });
+                    if (error) throw error;
+                    setSettings({ ...settings, max_active_devices: parseInt(e.target.value) });
+                  } catch (err) { alert(err.message); }
+                  setSaving(false);
+                }}
+                disabled={saving}
+                className="bg-dark-surface text-white border border-dark-border rounded-lg px-2 py-1 text-sm outline-none focus:border-primary"
+              >
+                {[1, 2, 3, 5, 10].map(num => (
+                  <option key={num} value={num}>{num}</option>
+                ))}
+              </select>
             </div>
-            <select 
-              value={settings.max_active_devices}
-              onChange={(e) => handleUpdateLimit(parseInt(e.target.value))}
-              disabled={saving}
-              className="bg-dark-surface text-white border border-dark-border rounded-lg px-2 py-1 text-sm outline-none focus:border-primary"
-            >
-              {[1, 2, 3, 5, 10].map(num => (
-                <option key={num} value={num}>{num}</option>
-              ))}
-            </select>
+            
+            <div className="bg-dark-bg border border-dark-border rounded-xl p-3 flex items-center gap-4">
+              <div className="text-sm">
+                <span className="text-dark-muted">Login Policy: </span>
+              </div>
+              <select 
+                value={settings.login_policy || 'require_approval'}
+                onChange={async (e) => {
+                  setSaving(true);
+                  try {
+                    const { error } = await supabase.from('user_login_settings').upsert({ user_id: user.id, login_policy: e.target.value });
+                    if (error) throw error;
+                    setSettings({ ...settings, login_policy: e.target.value });
+                  } catch (err) { alert(err.message); }
+                  setSaving(false);
+                }}
+                disabled={saving}
+                className="bg-dark-surface text-white border border-dark-border rounded-lg px-2 py-1 text-sm outline-none focus:border-primary"
+              >
+                <option value="require_approval">Require Approval</option>
+                <option value="allow_all">Direct Grant</option>
+                <option value="login_disabled">Logins Disabled</option>
+              </select>
+            </div>
           </div>
         )}
       </div>

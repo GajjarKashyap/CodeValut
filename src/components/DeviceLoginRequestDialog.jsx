@@ -70,13 +70,15 @@ const DeviceLoginRequestDialog = () => {
   const handleApprove = async (requestId) => {
     setProcessing(true);
     try {
-      const { error } = await supabase.rpc('approve_device_login_internal', {
+      const { data, error } = await supabase.rpc('approve_device_login_internal', {
         p_admin_user_id: user.id,
         p_admin_device_id: deviceSessionInfo.device_id,
         p_request_id: requestId,
         p_approval_mode: 'add_device'
       });
       if (error) throw error;
+      if (data && data.success === false) throw new Error(data.error || 'Failed to approve device');
+      
       setRequests(prev => prev.filter(r => r.id !== requestId));
     } catch (err) {
       alert("Failed to approve: " + err.message);
@@ -88,12 +90,14 @@ const DeviceLoginRequestDialog = () => {
   const handleReject = async (requestId) => {
     setProcessing(true);
     try {
-      const { error } = await supabase.rpc('reject_device_login_internal', {
+      const { data, error } = await supabase.rpc('reject_device_login_internal', {
         p_admin_user_id: user.id,
         p_admin_device_id: deviceSessionInfo.device_id,
         p_request_id: requestId
       });
       if (error) throw error;
+      if (data && data.success === false) throw new Error(data.error || 'Failed to reject device');
+      
       setRequests(prev => prev.filter(r => r.id !== requestId));
     } catch (err) {
       alert("Failed to reject: " + err.message);

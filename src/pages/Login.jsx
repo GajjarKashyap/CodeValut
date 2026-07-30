@@ -9,7 +9,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { user } = useAuth();
+  const { user, deviceStatus } = useAuth();
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [copiedSection, setCopiedSection] = useState('');
   const [blockedModalOpen, setBlockedModalOpen] = useState(window.location.search.includes('blocked=true') || window.location.hash.includes('blocked=true'));
@@ -19,11 +19,19 @@ export default function Login() {
     document.documentElement.setAttribute('data-theme', savedTheme);
   }, []);
 
+  useEffect(() => {
+    if (user && (deviceStatus === 'blocked' || deviceStatus === 'revoked')) {
+      supabase.auth.signOut().then(() => {
+        setBlockedModalOpen(true);
+      });
+    }
+  }, [user, deviceStatus]);
+
   const handleRequestAccess = () => {
     setShowRequestModal(true);
   };
 
-  if (user) {
+  if (user && deviceStatus !== 'blocked' && deviceStatus !== 'revoked') {
     return <Navigate to="/" />;
   }
 

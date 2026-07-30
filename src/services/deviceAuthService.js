@@ -58,9 +58,9 @@ export const registerDevice = async () => {
 
     if (error) throw error;
     
-    // Attach approval code so the UI can display it
+    // Attach approval code so the UI can display it (use backend existing code if available to prevent refresh issues)
     if (data?.status === 'pending') {
-      data.approvalCode = approvalCode;
+      data.approvalCode = data.approval_code || approvalCode;
     }
     
     return data;

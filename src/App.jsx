@@ -57,16 +57,27 @@ class ErrorBoundary extends React.Component {
 // 2. Protected Route Wrapper
 // ----------------------------------------------------
 const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
-  if (loading) return (
+  const { user, loading, deviceStatus } = useAuth();
+  
+  if (loading || deviceStatus === 'checking_device') return (
     <div className="h-screen flex items-center justify-center bg-dark-bg">
       <div className="flex flex-col items-center gap-4">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
-        <p className="text-dark-muted text-sm font-mono tracking-wide">Loading CodeVault...</p>
+        <p className="text-dark-muted text-sm font-mono tracking-wide">
+          {deviceStatus === 'checking_device' ? 'Verifying device...' : 'Loading CodeVault...'}
+        </p>
       </div>
     </div>
   );
-  if (!user) return <Navigate to="/login" />;
+  
+  if (!user || deviceStatus === 'blocked' || deviceStatus === 'revoked') {
+    return <Navigate to="/login" />;
+  }
+  
+  if (deviceStatus === 'pending') {
+    return <PendingDeviceApproval />;
+  }
+  
   return children;
 };
 

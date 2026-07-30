@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
           console.log('Session revoked remotely. Kicking out.');
           setDeviceStatus('revoked');
           clearCachedDeviceSession();
-          // Optionally auto-sign-out: supabase.auth.signOut();
+          supabase.auth.signOut(); // Hard log out
         }
       })
       .subscribe();

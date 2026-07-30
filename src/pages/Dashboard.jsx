@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { supabase } from '../lib/supabase';
-import { Coffee, Database, Star, FileText, X, TrendingUp, Users, ShieldCheck, Activity, RefreshCw, Bell, Trash2, Megaphone, AlertTriangle, CheckCircle, LogOut, Key, Copy } from 'lucide-react';
+import { Coffee, Database, Star, FileText, X, TrendingUp, Users, ShieldCheck, Activity, RefreshCw, Bell, Trash2, Megaphone, AlertTriangle, CheckCircle, LogOut, Key, Copy, Smartphone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';

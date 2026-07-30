@@ -10,6 +10,30 @@ export const AuthProvider = ({ children }) => {
   const [deviceStatus, setDeviceStatus] = useState(null);
   const [deviceSessionInfo, setDeviceSessionInfo] = useState(null);
 
+  // Real-time listener for instant kick-out when session is revoked
+  useEffect(() => {
+    if (!deviceSessionInfo?.device_session_id) return;
+    
+    const channel = supabase
+      .channel('auth-session-check')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'auth_device_sessions',
+        filter: `id=eq.${deviceSessionInfo.device_session_id}`
+      }, (payload) => {
+        if (payload.new.status === 'revoked') {
+          console.log('Session revoked remotely. Kicking out.');
+          setDeviceStatus('revoked');
+          clearCachedDeviceSession();
+          // Optionally auto-sign-out: supabase.auth.signOut();
+        }
+      })
+      .subscribe();
+      
+    return () => supabase.removeChannel(channel);
+  }, [deviceSessionInfo?.device_session_id]);
+
   // Ref to track which user we've already done a device check for.
   // This prevents re-running the RPC on every re-render or tab focus event.
   const checkedForUserRef = useRef(null);

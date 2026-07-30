@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Palette, CheckCircle2, Upload, User, Check, Trash2, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import SecurityDevices from '../components/SecurityDevices';
 import { supabase } from '../lib/supabase';
 
 const themes = [
@@ -248,6 +249,8 @@ export default function Settings() {
           ))}
         </div>
       </div>
+    
+      <SecurityDevices />
     </div>
   );
 }

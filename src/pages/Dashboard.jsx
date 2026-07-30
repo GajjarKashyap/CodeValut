@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
 import { getTodayPasskey } from '../utils/passkeyUtils';
+import AdminDeviceManager from '../components/AdminDeviceManager';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -16,6 +17,7 @@ export default function Dashboard() {
   const [studentStatsList, setStudentStatsList] = useState([]);
   const [adminUsersActivity, setAdminUsersActivity] = useState([]);
   const [selectedStudentFilter, setSelectedStudentFilter] = useState(null);
+  const [expandedUserDevices, setExpandedUserDevices] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [startY, setStartY] = useState(0);
@@ -635,7 +637,9 @@ export default function Dashboard() {
               const lastSeen = new Date(activity.last_seen_at);
               const isOnline = (new Date() - lastSeen) < 5 * 60 * 1000;
               return (
-                <div key={activity.user_id} className="flex items-center gap-3 p-3 bg-dark-bg/40 rounded-xl border border-dark-border/40">
+                <div key={activity.user_id} className="flex flex-col bg-dark-bg/40 rounded-xl border border-dark-border/40 overflow-hidden">
+                  <div className="flex items-center gap-3 p-3">
+
                   <div className="w-10 h-10 rounded-full border border-dark-border bg-dark-bg flex items-center justify-center overflow-hidden shrink-0">
                     {profiles[activity.user_id] ? (
                       <img src={profiles[activity.user_id]} className="w-full h-full object-cover" />
@@ -661,6 +665,13 @@ export default function Dashboard() {
                         <Trash2 size={14} />
                       </button>
                     )}
+                    <button 
+        onClick={() => setExpandedUserDevices(prev => prev === activity.user_id ? null : activity.user_id)}
+        className="text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 px-2 py-1.5 rounded-lg text-xs font-bold transition-all mr-1 cursor-pointer"
+        title="View User Devices"
+      >
+        Devices
+      </button>
                     {activity.user_id !== user.id && (
                       activity.is_blocked ? (
                         <button 
@@ -681,6 +692,13 @@ export default function Dashboard() {
                       )
                     )}
                   </div>
+                
+                  </div>
+                  {expandedUserDevices === activity.user_id && (
+                    <div className="p-3 bg-dark-surface border-t border-dark-border/50">
+                      <AdminDeviceManager targetUserId={activity.user_id} adminUser={user} />
+                    </div>
+                  )}
                 </div>
               );
             })}

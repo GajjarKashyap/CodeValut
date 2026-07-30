@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [reportedSessions, setReportedSessions] = useState([]);
   const [studentStatsList, setStudentStatsList] = useState([]);
   const [adminUsersActivity, setAdminUsersActivity] = useState([]);
+  const [adminUserSettings, setAdminUserSettings] = useState({});
   const [selectedStudentFilter, setSelectedStudentFilter] = useState(null);
   const [expandedUserDevices, setExpandedUserDevices] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -113,6 +114,19 @@ export default function Dashboard() {
       setAvatarToDelete(null);
     } catch (e) {
       alert('Failed: ' + e.message);
+    }
+  };
+
+  
+  const handleToggleSingleDevice = async (userId, currentValue) => {
+    try {
+      const newValue = !currentValue;
+      await supabase.from('user_login_settings').upsert({ user_id: userId }, { onConflict: 'user_id', ignoreDuplicates: true });
+      const { error } = await supabase.from('user_login_settings').update({ single_device_mode: newValue }).eq('user_id', userId);
+      if (error) throw error;
+      setAdminUserSettings(prev => ({ ...prev, [userId]: { ...prev[userId], single_device_mode: newValue } }));
+    } catch (err) {
+      alert('Failed: ' + err.message);
     }
   };
 
@@ -249,6 +263,12 @@ export default function Dashboard() {
             
           if (!activityError && userActivity) {
             setAdminUsersActivity(userActivity);
+          }
+          const { data: userSettings } = await supabase.from('user_login_settings').select('user_id, single_device_mode');
+          if (userSettings) {
+             const settingsMap = {};
+             userSettings.forEach(s => settingsMap[s.user_id] = s);
+             setAdminUserSettings(settingsMap);
           }
 
           // Legacy stats based on sessions
@@ -669,6 +689,17 @@ export default function Dashboard() {
                         <Trash2 size={14} />
                       </button>
                     )}
+                    <button 
+                      onClick={() => handleToggleSingleDevice(activity.user_id, adminUserSettings[activity.user_id]?.single_device_mode)}
+                      className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center gap-1 mr-1 ${
+                        adminUserSettings[activity.user_id]?.single_device_mode 
+                          ? 'bg-purple-500/10 text-purple-400 border-purple-500/20 hover:bg-purple-500/20' 
+                          : 'bg-dark-bg text-dark-muted border-dark-border hover:text-white'
+                      }`}
+                      title="Single Device Mode (Kicks old devices on new login)"
+                    >
+                      <Smartphone size={12} /> 1-Device
+                    </button>
                     <button 
         onClick={() => setExpandedUserDevices(prev => prev === activity.user_id ? null : activity.user_id)}
         className="text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 px-2 py-1.5 rounded-lg text-xs font-bold transition-all mr-1 cursor-pointer"
